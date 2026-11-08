@@ -1,0 +1,6 @@
+{
+  "name": "Trợ lý Dịch vụ công & Sơ đồ Một cửa Phường Sơn Trà",
+  "description": "Hệ thống hỗ trợ người cao tuổi và công dân tiếp cận dịch vụ công trực tuyến, tra cứu hồ sơ thủ tục và sơ đồ tiếp nhận một cửa bằng màn hình cảm ứng và giọng nói.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,98 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  --color-gov-red: #be111a;
+  --color-gov-red-hover: #a30e16;
+  --color-gov-red-dark: #870b12;
+  --color-gov-red-light: #fef2f2;
+  
+  --color-gov-gold: #eab308;
+  --color-gov-gold-dark: #ca8a04;
+  --color-gov-gold-light: #fefce8;
+  
+  --color-gov-blue: #0f4c81;
+  --color-gov-blue-dark: #09355c;
+  --color-gov-blue-light: #eff6ff;
+  
+  --color-gov-bg: #f4f6f9;
+  --color-gov-surface: #ffffff;
+  --color-gov-border: #e2e8f0;
+}
+
+:root {
+  --font-scale: 1;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #f4f6f9;
+  color: #1e293b;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Accessibility Font Scaling */
+.text-scale-normal {
+  font-size: 100%;
+}
+
+.text-scale-large {
+  font-size: 115%;
+}
+
+.text-scale-xlarge {
+  font-size: 130%;
+}
+
+/* Kiosk smooth animations and high-contrast styles */
+@keyframes pulse-subtle {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.95;
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Audio waves animation */
+@keyframes soundwave {
+  0%, 100% {
+    height: 6px;
+  }
+  50% {
+    height: 24px;
+  }
+}
+
+.soundwave-bar {
+  animation: soundwave 1.2s ease-in-out infinite;
+}
+
+/* Custom kiosk scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
