@@ -15,18 +15,24 @@ import {
   Lock
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { Counter, PublicService } from '../types';
+import { KioskProcedureGuideModal } from './KioskProcedureGuideModal';
 
 export const StandbyScreen: React.FC = () => {
   const { 
     selectedWard, 
     currentWardCounters, 
+    currentWardOfficers,
+    currentWardServices,
     setCurrentScreen,
+    selectService,
     readText,
     isAdminLoggedIn,
     setIsAdminLoginModalOpen
   } = useApp();
 
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const [selectedCounterForGuide, setSelectedCounterForGuide] = useState<Counter | null>(null);
 
   // Real-time clock update
   useEffect(() => {
@@ -49,6 +55,10 @@ export const StandbyScreen: React.FC = () => {
     // Friendly audio welcome for elderly citizens
     readText(`Kính chào Bác! Chào mừng Bác đến với Trung tâm Phục vụ Hành chính công ${selectedWard.name}. Bác hãy chọn thủ tục hoặc bấm micro để nói yêu cầu.`);
     setCurrentScreen('citizen_home');
+  };
+
+  const handleOpenCounterGuide = (counter: Counter) => {
+    setSelectedCounterForGuide(counter);
   };
 
   return (
@@ -140,40 +150,55 @@ export const StandbyScreen: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4">
-            {currentWardCounters.map((counter) => (
-              <div
-                key={counter.id}
-                className="p-4 rounded-2xl bg-white hover:bg-red-50/50 border border-slate-200 hover:border-[#be111a] transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-black px-2.5 py-0.5 rounded-md bg-[#fef2f2] text-[#be111a] border border-[#fecaca]">
-                      {counter.code}
-                    </span>
-                    <span className="text-[11px] font-mono text-slate-400 font-semibold">
-                      Bàn {counter.positionNumber}
-                    </span>
+            {currentWardCounters.map((counter) => {
+              const counterServices = currentWardServices.filter(s => s.counterId === counter.id);
+              return (
+                <div
+                  key={counter.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenCounterGuide(counter);
+                  }}
+                  className="p-4 rounded-2xl bg-white hover:bg-red-50/50 border border-slate-200 hover:border-[#be111a] transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between cursor-pointer"
+                  title={`Chạm để xem hướng dẫn thủ tục tại ${counter.code}`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-black px-2.5 py-0.5 rounded-md bg-[#fef2f2] text-[#be111a] border border-[#fecaca]">
+                        {counter.code}
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-400 font-semibold">
+                        Bàn {counter.positionNumber}
+                      </span>
+                    </div>
+
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#be111a] transition-colors line-clamp-1">
+                      {counter.primaryField}
+                    </h3>
+
+                    <p className="text-xs text-[#be111a] font-bold mt-1">
+                      {counter.officerName}
+                    </p>
+
+                    <p className="text-[11px] text-slate-500 line-clamp-2 mt-1">
+                      {counter.description}
+                    </p>
                   </div>
 
-                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#be111a] transition-colors line-clamp-1">
-                    {counter.primaryField}
-                  </h3>
-
-                  <p className="text-xs text-[#be111a] font-bold mt-1">
-                    {counter.officerName}
-                  </p>
-
-                  <p className="text-[11px] text-slate-500 line-clamp-2 mt-1">
-                    {counter.description}
-                  </p>
+                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-[#be111a] font-bold group-hover:text-red-700">
+                    <span className="flex items-center gap-1 group-hover:underline">
+                      Xem thủ tục
+                      {counterServices.length > 0 && (
+                        <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded-md bg-red-100 text-[#be111a] ml-1">
+                          {counterServices.length} TTHC
+                        </span>
+                      )}
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-[#be111a]" />
+                  </div>
                 </div>
-
-                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-[#be111a] font-bold">
-                  <span>Xem thủ tục</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -265,6 +290,21 @@ export const StandbyScreen: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {/* Modal Hướng dẫn quy trình, hồ sơ, lệ phí, thời gian của dịch vụ tương ứng tại Kiosk */}
+      <KioskProcedureGuideModal
+        isOpen={Boolean(selectedCounterForGuide)}
+        onClose={() => setSelectedCounterForGuide(null)}
+        counter={selectedCounterForGuide}
+        officer={currentWardOfficers.find(o => o.counterId === selectedCounterForGuide?.id) || 
+          currentWardOfficers.find(o => o.name === selectedCounterForGuide?.officerName)}
+        services={currentWardServices.filter(s => s.counterId === selectedCounterForGuide?.id)}
+        ward={selectedWard}
+        onOpenFullDetail={(service) => {
+          setSelectedCounterForGuide(null);
+          selectService(service);
+        }}
+      />
 
     </div>
   );
