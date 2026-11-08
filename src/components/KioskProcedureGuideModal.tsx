@@ -44,16 +44,25 @@ export const KioskProcedureGuideModal: React.FC<KioskProcedureGuideModalProps> =
   const { readText, stopAudio, isSpeaking } = useApp();
   const [selectedServiceId, setSelectedServiceId] = useState<string>('');
 
+  // Only set initial selectedServiceId when modal opens or counter changes
   useEffect(() => {
+    if (!isOpen || !counter) {
+      stopAudio();
+      return;
+    }
+
     if (services.length > 0) {
-      // Default to the first popular service or first service
-      const popular = services.find(s => s.isPopular);
-      setSelectedServiceId(popular ? popular.id : services[0].id);
+      setSelectedServiceId(prev => {
+        // If current selected service already exists in this counter's services, keep user's selection!
+        const stillExists = services.some(s => s.id === prev);
+        if (stillExists) return prev;
+        const popular = services.find(s => s.isPopular);
+        return popular ? popular.id : services[0].id;
+      });
     } else {
       setSelectedServiceId('');
     }
-    stopAudio();
-  }, [counter, services]);
+  }, [counter?.id, isOpen]);
 
   if (!isOpen || !counter) return null;
 

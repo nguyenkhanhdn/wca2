@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Building2, 
   Sparkles, 
@@ -10,13 +10,42 @@ import {
   ArrowRight, 
   ShieldCheck, 
   Layers, 
-  ChevronRight,
-  Landmark,
-  Lock
+  ChevronRight, 
+  Landmark, 
+  Lock 
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Counter, PublicService } from '../types';
 import { KioskProcedureGuideModal } from './KioskProcedureGuideModal';
+
+const DigitalClock: React.FC = React.memo(() => {
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+  const dayName = days[currentTime.getDay()];
+  const day = currentTime.getDate().toString().padStart(2, '0');
+  const month = (currentTime.getMonth() + 1).toString().padStart(2, '0');
+  const year = currentTime.getFullYear();
+  const dateStr = `${dayName}, ngày ${day}/${month}/${year}`;
+
+  return (
+    <div className="text-center md:text-right bg-black/25 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20 shadow-inner">
+      <div className="text-3xl font-mono font-black text-amber-300 tabular-nums tracking-wider">
+        {currentTime.toLocaleTimeString('vi-VN', { hour12: false })}
+      </div>
+      <div className="text-xs font-semibold text-white/90 mt-0.5">
+        {dateStr}
+      </div>
+    </div>
+  );
+});
 
 export const StandbyScreen: React.FC = () => {
   const { 
@@ -31,25 +60,19 @@ export const StandbyScreen: React.FC = () => {
     setIsAdminLoginModalOpen
   } = useApp();
 
-  const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const [selectedCounterForGuide, setSelectedCounterForGuide] = useState<Counter | null>(null);
 
-  // Real-time clock update
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+  // Memoize active counter services so references are stable
+  const activeCounterServices = useMemo(() => {
+    if (!selectedCounterForGuide) return [];
+    return currentWardServices.filter(s => s.counterId === selectedCounterForGuide.id);
+  }, [currentWardServices, selectedCounterForGuide?.id]);
 
-  const formatVietnameseDate = (date: Date) => {
-    const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-    const dayName = days[date.getDay()];
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-    return `${dayName}, ngày ${day}/${month}/${year}`;
-  };
+  const activeCounterOfficer = useMemo(() => {
+    if (!selectedCounterForGuide) return null;
+    return currentWardOfficers.find(o => o.counterId === selectedCounterForGuide.id) || 
+      currentWardOfficers.find(o => o.name === selectedCounterForGuide.officerName) || null;
+  }, [currentWardOfficers, selectedCounterForGuide]);
 
   const handleStart = () => {
     // Friendly audio welcome for elderly citizens
@@ -103,14 +126,7 @@ export const StandbyScreen: React.FC = () => {
           </div>
 
           {/* Government Digital Clock */}
-          <div className="text-center md:text-right bg-black/25 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20 shadow-inner">
-            <div className="text-3xl font-mono font-black text-amber-300 tabular-nums tracking-wider">
-              {currentTime.toLocaleTimeString('vi-VN', { hour12: false })}
-            </div>
-            <div className="text-xs font-semibold text-white/90 mt-0.5">
-              {formatVietnameseDate(currentTime)}
-            </div>
-          </div>
+          <DigitalClock />
 
         </div>
       </header>
@@ -296,9 +312,8 @@ export const StandbyScreen: React.FC = () => {
         isOpen={Boolean(selectedCounterForGuide)}
         onClose={() => setSelectedCounterForGuide(null)}
         counter={selectedCounterForGuide}
-        officer={currentWardOfficers.find(o => o.counterId === selectedCounterForGuide?.id) || 
-          currentWardOfficers.find(o => o.name === selectedCounterForGuide?.officerName)}
-        services={currentWardServices.filter(s => s.counterId === selectedCounterForGuide?.id)}
+        officer={activeCounterOfficer}
+        services={activeCounterServices}
         ward={selectedWard}
         onOpenFullDetail={(service) => {
           setSelectedCounterForGuide(null);
