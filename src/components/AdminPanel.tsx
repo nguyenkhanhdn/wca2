@@ -21,7 +21,7 @@ import {
   UserCheck,
   LogOut
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp, sanitizeServiceNationalPortalUrl } from '../context/AppContext';
 import { Ward, Counter, Officer, PublicService, ServiceCategory, ServiceLevel } from '../types';
 
 export const AdminPanel: React.FC = () => {
@@ -789,18 +789,38 @@ export const AdminPanel: React.FC = () => {
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">
-                  Đường dẫn Cổng Dịch vụ công Quốc gia (dichvucong.gov.vn):
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="font-bold text-slate-700">
+                    Đường dẫn Cổng Dịch vụ công Quốc gia (dichvucong.gov.vn):
+                  </label>
+                  {editingService.code && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const generated = `https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=${encodeURIComponent(editingService.code.trim())}`;
+                        setEditingService({ ...editingService, nationalPortalUrl: generated });
+                      }}
+                      className="text-xs text-red-700 hover:text-red-800 font-semibold underline cursor-pointer"
+                    >
+                      Tạo link chuẩn theo mã {editingService.code}
+                    </button>
+                  )}
+                </div>
                 <input
                   type="url"
                   value={editingService.nationalPortalUrl || ''}
-                  onChange={e => setEditingService({ ...editingService, nationalPortalUrl: e.target.value })}
+                  onChange={e => {
+                    let val = e.target.value;
+                    if (val.includes('dvc-chi-tiet-thu-tuc-hanh-chinh.html')) {
+                      val = val.replace('dvc-chi-tiet-thu-tuc-hanh-chinh.html', 'dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html');
+                    }
+                    setEditingService({ ...editingService, nationalPortalUrl: val });
+                  }}
                   className="w-full p-2.5 rounded-xl border border-slate-300 font-mono text-xs text-blue-700"
-                  placeholder="https://dichvucong.gov.vn/..."
+                  placeholder="https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=..."
                 />
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Nếu để trống, hệ thống sẽ tự động dẫn đến trang tra cứu chuẩn trên https://dichvucong.gov.vn/
+                  Định dạng chuẩn chính thức: <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=[Mã]</code>
                 </p>
               </div>
 

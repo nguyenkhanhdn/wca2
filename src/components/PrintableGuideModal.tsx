@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Printer, CheckSquare, Clock, MapPin, User, Phone, AlertCircle } from 'lucide-react';
 import { PublicService, Counter, Officer, Ward } from '../types';
+import { sanitizeServiceNationalPortalUrl } from '../context/AppContext';
 
 interface PrintableGuideModalProps {
   isOpen: boolean;
@@ -20,6 +21,8 @@ export const PrintableGuideModal: React.FC<PrintableGuideModalProps> = ({
   ward
 }) => {
   if (!isOpen) return null;
+
+  const officialProcedureUrl = sanitizeServiceNationalPortalUrl(service);
 
   const handlePrint = () => {
     window.print();
@@ -207,8 +210,11 @@ export const PrintableGuideModal: React.FC<PrintableGuideModalProps> = ({
 
           {/* Footer Contact & National Portal */}
           <div className="mt-6 pt-3 border-t border-dashed border-slate-300 text-center text-[11px] text-slate-600 space-y-1">
-            <p className="font-bold text-red-800">
-              Cổng Dịch vụ công Quốc gia: https://dichvucong.gov.vn/
+            <p className="font-bold text-red-800 break-all">
+              Đường dẫn tra cứu & nộp hồ sơ trực tuyến: {officialProcedureUrl}
+            </p>
+            <p className="text-slate-500">
+              Cổng DVC Quốc gia: https://dichvucong.gov.vn · Cổng DVC TP. Đà Nẵng: https://dichvucong.danang.gov.vn
             </p>
             <p>UBND {ward.name} · Địa chỉ: {ward.address}</p>
             <p>Hotline hỗ trợ: {ward.hotline} · Giờ làm việc: {ward.workingHours}</p>

@@ -355,7 +355,8 @@ export const INITIAL_SERVICES: PublicService[] = [
         answer: 'Hiện nay theo quy định mới, đăng ký khai sinh quá hạn không bị phạt tiền, Bác cứ an tâm mang đầy đủ giấy tờ đến Ô số 1 để hoàn tất thủ tục.'
       }
     ],
-    legalBasis: ['Luật Hộ tịch năm 2014', 'Nghị định 123/2015/NĐ-CP', 'Thông tư 04/2020/TT-BTP']
+    legalBasis: ['Luật Hộ tịch năm 2014', 'Nghị định 123/2015/NĐ-CP', 'Thông tư 04/2020/TT-BTP'],
+    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000128'
   },
 
   {
@@ -418,7 +419,8 @@ export const INITIAL_SERVICES: PublicService[] = [
         counterNote: 'Phòng tiếp dân một cửa'
       }
     ],
-    legalBasis: ['Luật Hộ tịch năm 2014', 'Luật Hôn nhân và Gia đình năm 2014']
+    legalBasis: ['Luật Hộ tịch năm 2014', 'Luật Hôn nhân và Gia đình năm 2014'],
+    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000129'
   },
 
   {
@@ -475,7 +477,8 @@ export const INITIAL_SERVICES: PublicService[] = [
         counterNote: 'Ô số 1'
       }
     ],
-    legalBasis: ['Luật Hộ tịch năm 2014']
+    legalBasis: ['Luật Hộ tịch năm 2014'],
+    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000130'
   },
 
   // 2. Tư pháp - Chứng thực (Ô số 2)
@@ -531,7 +534,8 @@ export const INITIAL_SERVICES: PublicService[] = [
         counterNote: 'Ô số 2 & Quầy thủ quỹ'
       }
     ],
-    legalBasis: ['Nghị định 23/2015/NĐ-CP của Chính phủ']
+    legalBasis: ['Nghị định 23/2015/NĐ-CP của Chính phủ'],
+    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000135'
   },
 
   {
@@ -586,7 +590,8 @@ export const INITIAL_SERVICES: PublicService[] = [
         counterNote: 'Ô số 2'
       }
     ],
-    legalBasis: ['Nghị định 23/2015/NĐ-CP']
+    legalBasis: ['Nghị định 23/2015/NĐ-CP'],
+    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000136'
   },
 
   {
@@ -641,7 +646,8 @@ export const INITIAL_SERVICES: PublicService[] = [
         counterNote: 'Ô số 1'
       }
     ],
-    legalBasis: ['Luật Hộ tịch năm 2014', 'Thông tư 04/2020/TT-BTP']
+    legalBasis: ['Luật Hộ tịch năm 2014', 'Thông tư 04/2020/TT-BTP'],
+    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000137'
   },
 
   // 3. Dân tộc - Tôn giáo - Nội vụ (Ô số 3)
@@ -697,7 +703,8 @@ export const INITIAL_SERVICES: PublicService[] = [
         counterNote: 'Ô số 3'
       }
     ],
-    legalBasis: ['Luật Tín ngưỡng, tôn giáo năm 2016']
+    legalBasis: ['Luật Tín ngưỡng, tôn giáo năm 2016'],
+    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000210'
   },
 
   // 4. Đăng ký Hộ kinh doanh & An toàn thực phẩm (Ô số 4)
@@ -761,7 +768,8 @@ export const INITIAL_SERVICES: PublicService[] = [
         counterNote: 'Ô số 4'
       }
     ],
-    legalBasis: ['Nghị định 01/2021/NĐ-CP về đăng ký doanh nghiệp']
+    legalBasis: ['Nghị định 01/2021/NĐ-CP về đăng ký doanh nghiệp'],
+    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000301'
   },
 
   {
@@ -832,7 +840,8 @@ export const INITIAL_SERVICES: PublicService[] = [
         counterNote: 'Ô số 4'
       }
     ],
-    legalBasis: ['Luật An toàn thực phẩm năm 2010', 'Nghị định 15/2018/NĐ-CP']
+    legalBasis: ['Luật An toàn thực phẩm năm 2010', 'Nghị định 15/2018/NĐ-CP'],
+    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000305'
   },
 
   // 5. Văn hóa - Giáo dục - Y tế - Chính sách Xã hội (Ô số 5)
@@ -896,7 +905,8 @@ export const INITIAL_SERVICES: PublicService[] = [
         counterNote: 'Ô số 5 & Điểm bưu điện'
       }
     ],
-    legalBasis: ['Nghị định 20/2021/NĐ-CP của Chính phủ']
+    legalBasis: ['Nghị định 20/2021/NĐ-CP của Chính phủ'],
+    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000412'
   },
 
   {
@@ -959,7 +969,8 @@ export const INITIAL_SERVICES: PublicService[] = [
         counterNote: 'Ô số 5'
       }
     ],
-    legalBasis: ['Luật Người khuyết tật năm 2010', 'Thông tư 01/2019/TT-BLĐTBXH']
+    legalBasis: ['Luật Người khuyết tật năm 2010', 'Thông tư 01/2019/TT-BLĐTBXH'],
+    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000415'
   },
 
   {
@@ -1008,7 +1019,8 @@ export const INITIAL_SERVICES: PublicService[] = [
         counterNote: 'Ô số 5'
       }
     ],
-    legalBasis: ['Nghị định 81/2021/NĐ-CP của Chính phủ']
+    legalBasis: ['Nghị định 81/2021/NĐ-CP của Chính phủ'],
+    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000418'
   },
 
   // 6. Công Thương, TTHC khác (Ô số 6)
@@ -1072,7 +1084,8 @@ export const INITIAL_SERVICES: PublicService[] = [
         counterNote: 'Ô số 6'
       }
     ],
-    legalBasis: ['Nghị định 67/2013/NĐ-CP', 'Nghị định 105/2017/NĐ-CP']
+    legalBasis: ['Nghị định 67/2013/NĐ-CP', 'Nghị định 105/2017/NĐ-CP'],
+    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000502'
   },
 
   {
@@ -1127,7 +1140,8 @@ export const INITIAL_SERVICES: PublicService[] = [
         counterNote: 'Ô số 6'
       }
     ],
-    legalBasis: ['Đề án 06 của Thủ tướng Chính phủ về Chuyển đổi số quốc gia']
+    legalBasis: ['Đề án 06 của Thủ tướng Chính phủ về Chuyển đổi số quốc gia'],
+    nationalPortalUrl: 'https://dichvucong.gov.vn/'
   }
 ];
 

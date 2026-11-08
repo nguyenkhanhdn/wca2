@@ -22,7 +22,7 @@ import {
   CheckCircle2,
   Copy
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp, sanitizeServiceNationalPortalUrl } from '../context/AppContext';
 import { PrintableGuideModal } from './PrintableGuideModal';
 
 export const ServiceDetailScreen: React.FC = () => {
@@ -43,6 +43,8 @@ export const ServiceDetailScreen: React.FC = () => {
   const [checkedDocs, setCheckedDocs] = useState<Record<string, boolean>>({});
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'hoso' | 'sodo' | 'faq'>('hoso');
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   if (!selectedService) {
     return (
@@ -64,21 +66,27 @@ export const ServiceDetailScreen: React.FC = () => {
     currentWardOfficers.find(o => o.name === assignedCounter?.officerName);
 
   // Link to National Public Service Portal (strictly official https://dichvucong.gov.vn/)
-  const nationalPortalUrl = (selectedService.nationalPortalUrl && selectedService.nationalPortalUrl.trim() !== '' && !selectedService.nationalPortalUrl.includes('dvc-chi-tiet-thu-tuc-hanh-chinh'))
-    ? selectedService.nationalPortalUrl
-    : 'https://dichvucong.gov.vn/';
+  const nationalPortalUrl = sanitizeServiceNationalPortalUrl(selectedService);
 
   const danangPortalUrl = 'https://dichvucong.danang.gov.vn/';
   const lienthongPortalUrl = 'https://lienthong.dichvucong.gov.vn/';
   const isLienthongService = selectedService.id === 'srv-khai-sinh' || selectedService.id === 'srv-khai-tu';
-
-  const [copiedCode, setCopiedCode] = useState(false);
 
   const handleCopyCodeAndNavigate = (url: string) => {
     try {
       navigator.clipboard.writeText(`${selectedService.code} ${selectedService.name}`);
       setCopiedCode(true);
       setTimeout(() => setCopiedCode(false), 4000);
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleCopyLink = (url: string) => {
+    try {
+      navigator.clipboard.writeText(url);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 4000);
     } catch {
       // ignore
     }
@@ -448,23 +456,36 @@ export const ServiceDetailScreen: React.FC = () => {
 
             {/* CTA: Chuyển đến Cổng Dịch vụ công Quốc gia (dichvucong.gov.vn) */}
             <div className="bg-gradient-to-br from-[#fef2f2] via-white to-amber-50/70 rounded-3xl p-6 sm:p-7 border-2 border-[#be111a]/30 shadow-md">
-              <div className="space-y-3.5">
+              <div className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-[#be111a] text-xs font-bold border border-red-200">
                     <CheckCircle2 className="w-3.5 h-3.5 text-[#be111a]" />
                     Cổng Dịch vụ công Quốc gia · dichvucong.gov.vn
                   </div>
 
-                  {/* Copy Procedure Code Button */}
-                  <button
-                    type="button"
-                    onClick={() => handleCopyCodeAndNavigate(nationalPortalUrl)}
-                    className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-[#be111a] px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-2xs transition-colors cursor-pointer"
-                    title="Sao chép tên và mã thủ tục để dán vào ô tìm kiếm"
-                  >
-                    <Copy className="w-3.5 h-3.5 text-slate-500" />
-                    <span>{copiedCode ? 'Đã sao chép!' : `Sao chép mã TTHC: ${selectedService.code}`}</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {/* Copy Procedure Code Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleCopyCodeAndNavigate(nationalPortalUrl)}
+                      className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-[#be111a] px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-2xs transition-colors cursor-pointer"
+                      title="Sao chép tên và mã thủ tục để dán vào ô tìm kiếm"
+                    >
+                      <Copy className="w-3.5 h-3.5 text-slate-500" />
+                      <span>{copiedCode ? 'Đã sao chép mã!' : `Mã TTHC: ${selectedService.code}`}</span>
+                    </button>
+
+                    {/* Copy Direct Link Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleCopyLink(nationalPortalUrl)}
+                      className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-[#be111a] px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-2xs transition-colors cursor-pointer"
+                      title="Sao chép đường liên kết chính thức đến thủ tục này"
+                    >
+                      <Copy className="w-3.5 h-3.5 text-slate-500" />
+                      <span>{copiedLink ? 'Đã sao chép liên kết!' : 'Sao chép link'}</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div>
@@ -472,29 +493,53 @@ export const ServiceDetailScreen: React.FC = () => {
                     Nộp hồ sơ trực tuyến qua Cổng Dịch vụ công Quốc gia
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed mt-1">
-                    Công dân có thể truy cập trực tiếp Cổng Dịch vụ công Quốc gia tại địa chỉ chính thức <strong>https://dichvucong.gov.vn/</strong>, đăng nhập tài khoản Định danh điện tử (VNeID) và thực hiện nộp hồ sơ trực tuyến ngay tại nhà.
+                    Công dân có thể truy cập trực tiếp trang chi tiết và nộp hồ sơ của thủ tục này tại địa chỉ chính thức của Cổng DVC Quốc gia, đăng nhập tài khoản Định danh điện tử (VNeID) và thực hiện nộp trực tuyến ngay tại nhà.
                   </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 pt-1">
-                  {/* Primary Button: Cổng DVC Quốc gia */}
+                {/* Direct Procedure Link display */}
+                <div className="p-3 bg-white/90 rounded-2xl border border-red-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+                  <div className="truncate w-full sm:w-auto">
+                    <span className="font-bold text-slate-500 block sm:inline mr-2">Liên kết chính thức:</span>
+                    <a
+                      href={nationalPortalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-red-700 hover:underline break-all"
+                    >
+                      {nationalPortalUrl}
+                    </a>
+                  </div>
                   <a
-                    href="https://dichvucong.gov.vn/"
+                    href={nationalPortalUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() => handleCopyCodeAndNavigate('https://dichvucong.gov.vn/')}
+                    className="shrink-0 px-2.5 py-1 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 font-bold text-[11px] inline-flex items-center gap-1"
+                  >
+                    <span>Mở tab mới</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 pt-1">
+                  {/* Primary Button: Direct to this procedure on Cổng DVC Quốc gia */}
+                  <a
+                    href={nationalPortalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => handleCopyCodeAndNavigate(nationalPortalUrl)}
                     className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#9b0e15] via-[#be111a] to-[#9b0e15] hover:from-[#7f0b11] hover:to-[#9b0e15] text-white font-black text-sm shadow-lg hover:shadow-xl hover:scale-102 active:scale-98 border-2 border-amber-300 transition-all text-center"
                   >
                     <ExternalLink className="w-4 h-4 text-amber-300" />
-                    <span>ĐẾN CỔNG DVC QUỐC GIA (dichvucong.gov.vn)</span>
+                    <span>MỞ TRỰC TIẾP TRÊN DVC QUỐC GIA (dichvucong.gov.vn)</span>
                   </a>
 
                   {/* Secondary Button: Cổng DVC TP. Đà Nẵng */}
                   <a
-                    href="https://dichvucong.danang.gov.vn/"
+                    href={danangPortalUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() => handleCopyCodeAndNavigate('https://dichvucong.danang.gov.vn/')}
+                    onClick={() => handleCopyCodeAndNavigate(danangPortalUrl)}
                     className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs sm:text-sm shadow-xs border border-slate-300 transition-all hover:border-[#be111a]"
                   >
                     <ExternalLink className="w-4 h-4 text-blue-600" />
@@ -504,21 +549,38 @@ export const ServiceDetailScreen: React.FC = () => {
                   {/* Inter-connected services link */}
                   {isLienthongService && (
                     <a
-                      href="https://lienthong.dichvucong.gov.vn/"
+                      href={lienthongPortalUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center gap-1.5 px-4 py-3.5 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs shadow-xs border border-amber-300 transition-all"
                     >
                       <Sparkles className="w-4 h-4 text-amber-600" />
-                      <span>Cổng Liên thông Đề án 06</span>
+                      <span>Cổng DVC Liên thông Đề án 06</span>
                     </a>
                   )}
+
+                  {/* Portal Home link */}
+                  <a
+                    href="https://dichvucong.gov.vn/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs shadow-xs transition-colors"
+                  >
+                    <span>Trang chủ Cổng DVC</span>
+                  </a>
                 </div>
 
                 {copiedCode && (
                   <p className="text-xs text-emerald-700 font-semibold flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                     Đã sao chép mã [{selectedService.code}] và tên thủ tục vào bộ nhớ tạm để Bác dễ dàng dán tìm kiếm trên cổng.
+                  </p>
+                )}
+
+                {copiedLink && (
+                  <p className="text-xs text-emerald-700 font-semibold flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    Đã sao chép đường dẫn chính thức ({nationalPortalUrl}) vào bộ nhớ tạm!
                   </p>
                 )}
               </div>

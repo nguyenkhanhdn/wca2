@@ -92,6 +92,25 @@ const STORAGE_KEYS = {
   ACCESSIBILITY: 'dvc_sontra_a11y_v3'
 };
 
+export const sanitizeServiceNationalPortalUrl = (service: Partial<PublicService>): string => {
+  let url = service.nationalPortalUrl;
+  if (url && typeof url === 'string') {
+    url = url.trim();
+    // Auto-correct old broken format
+    if (url.includes('dvc-chi-tiet-thu-tuc-hanh-chinh.html')) {
+      url = url.replace('dvc-chi-tiet-thu-tuc-hanh-chinh.html', 'dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html');
+    }
+  }
+  // If empty or default root and service has a procedure code, link directly to procedure details
+  if (!url || url === '' || url === 'https://dichvucong.gov.vn/') {
+    if (service.code && service.code.trim() !== '' && service.id !== 'srv-ho-tro-vneid-dvc') {
+      return `https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=${encodeURIComponent(service.code.trim())}`;
+    }
+    return 'https://dichvucong.gov.vn/';
+  }
+  return url;
+};
+
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // Load from localStorage or defaults
   const [wards, setWards] = useState<Ward[]>(() => {
@@ -140,7 +159,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [services, setServices] = useState<PublicService[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.SERVICES);
-      return saved ? JSON.parse(saved) : INITIAL_SERVICES;
+      if (saved) {
+        const parsed: PublicService[] = JSON.parse(saved);
+        return parsed.map(s => ({
+          ...s,
+          nationalPortalUrl: sanitizeServiceNationalPortalUrl(s)
+        }));
+      }
+      return INITIAL_SERVICES;
     } catch {
       return INITIAL_SERVICES;
     }
@@ -374,11 +400,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // Admin CRUD for Services
   const addService = (service: PublicService) => {
-    setServices(prev => [service, ...prev]);
+    const sanitized: PublicService = {
+      ...service,
+      nationalPortalUrl: sanitizeServiceNationalPortalUrl(service)
+    };
+    setServices(prev => [sanitized, ...prev]);
   };
 
   const updateService = (service: PublicService) => {
-    setServices(prev => prev.map(s => s.id === service.id ? service : s));
+    const sanitized: PublicService = {
+      ...service,
+      nationalPortalUrl: sanitizeServiceNationalPortalUrl(service)
+    };
+    setServices(prev => prev.map(s => s.id === sanitized.id ? sanitized : s));
   };
 
   const deleteService = (id: string) => {
