@@ -12,6 +12,8 @@ import { ServiceDetailScreen } from './components/ServiceDetailScreen';
 import { WardMindmapView } from './components/WardMindmapView';
 import { AdminPanel } from './components/AdminPanel';
 import { AdminLoginModal } from './components/AdminLoginModal';
+import { AIAssistantFloatingButton } from './components/AIAssistantFloatingButton';
+import { AIAssistantModal } from './components/AIAssistantModal';
 import { Lock, ShieldCheck } from 'lucide-react';
 
 const AppContent: React.FC = () => {
@@ -20,6 +22,8 @@ const AppContent: React.FC = () => {
     setCurrentScreen, 
     isAdminLoggedIn, 
     setIsAdminLoginModalOpen,
+    isAIAssistantOpen,
+    setIsAIAssistantOpen,
     selectedWard 
   } = useApp();
 
@@ -81,6 +85,20 @@ const AppContent: React.FC = () => {
 
       {/* Admin Login Dialog Modal */}
       <AdminLoginModal />
+
+      {/* Floating AI Assistant Robot Button for Citizens */}
+      {currentScreen !== 'admin' && (
+        <AIAssistantFloatingButton 
+          onClick={() => setIsAIAssistantOpen(true)} 
+          isOpen={isAIAssistantOpen} 
+        />
+      )}
+
+      {/* Interactive AI Assistant Voice & Step Guidance Modal */}
+      <AIAssistantModal 
+        isOpen={isAIAssistantOpen} 
+        onClose={() => setIsAIAssistantOpen(false)} 
+      />
     </div>
   );
 };

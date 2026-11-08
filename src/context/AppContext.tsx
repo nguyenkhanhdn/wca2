@@ -37,6 +37,11 @@ interface AppContextType {
   selectService: (service: PublicService | null) => void;
   selectCounter: (counter: Counter | null) => void;
 
+  // AI Assistant Modal
+  isAIAssistantOpen: boolean;
+  setIsAIAssistantOpen: (open: boolean) => void;
+  openAIAssistant: () => void;
+
   // Admin Authentication
   isAdminLoggedIn: boolean;
   isAdminLoginModalOpen: boolean;
@@ -203,10 +208,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [currentScreen, setCurrentScreenState] = useState<ScreenType>('standby');
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(false);
   const [isAdminLoginModalOpen, setIsAdminLoginModalOpen] = useState<boolean>(false);
+  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState<boolean>(false);
   const [selectedService, setSelectedService] = useState<PublicService | null>(null);
   const [selectedCounter, setSelectedCounter] = useState<Counter | null>(null);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [activePlayingText, setActivePlayingText] = useState<string | null>(null);
+
+  const openAIAssistant = useCallback(() => {
+    setIsAIAssistantOpen(true);
+  }, []);
 
   const setCurrentScreen = (screen: ScreenType) => {
     if (screen === 'admin' && !isAdminLoggedIn) {
@@ -494,6 +504,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setSelectedWardId,
         selectService,
         selectCounter,
+        isAIAssistantOpen,
+        setIsAIAssistantOpen,
+        openAIAssistant,
         isAdminLoggedIn,
         isAdminLoginModalOpen,
         setIsAdminLoginModalOpen,

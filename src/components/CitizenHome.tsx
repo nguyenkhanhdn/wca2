@@ -21,16 +21,18 @@ import { useApp } from '../context/AppContext';
 import { PublicService, ServiceCategory } from '../types';
 import { CATEGORY_LABELS } from '../data/initialData';
 import { VoiceSearchModal } from './VoiceSearchModal';
+import { AIAssistantIcon } from './AIAssistantIcon';
 import { removeVietnameseTones } from '../utils/speech';
 
 export const CitizenHome: React.FC = () => {
   const { 
     selectedWard, 
     currentWardServices, 
-    currentWardCounters,
+    currentWardCounters, 
     selectService, 
     setCurrentScreen,
-    readText
+    readText,
+    openAIAssistant
   } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -174,14 +176,15 @@ export const CitizenHome: React.FC = () => {
                 </button>
               )}
 
-              {/* Big Voice Microphone Button */}
+              {/* Big AI Assistant Microphone Button */}
               <button
-                onClick={() => setIsVoiceModalOpen(true)}
-                className="flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all shrink-0 active:scale-95"
-                title="Bấm để nói bằng giọng nói"
+                onClick={openAIAssistant}
+                className="flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-red-600 via-[#be111a] to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-extrabold text-sm sm:text-base shadow-md hover:shadow-lg transition-all shrink-0 active:scale-95 cursor-pointer ring-2 ring-amber-300/40"
+                title="Bấm để nói chuyện với Trợ lý AI Một Cửa"
               >
-                <Mic className="w-5 h-5 animate-pulse" />
-                <span>Nói vào micro</span>
+                <AIAssistantIcon className="w-5 h-5 text-white animate-pulse" />
+                <span className="hidden sm:inline">Nói với Trợ lý AI</span>
+                <span className="sm:hidden">Trợ lý AI</span>
               </button>
             </div>
 

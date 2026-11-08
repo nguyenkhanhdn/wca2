@@ -13,6 +13,7 @@ import {
   Check
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { AIAssistantIcon } from './AIAssistantIcon';
 
 export const Navbar: React.FC = () => {
   const { 
@@ -26,7 +27,8 @@ export const Navbar: React.FC = () => {
     setHighContrast,
     isSpeaking,
     stopAudio,
-    readText
+    readText,
+    openAIAssistant
   } = useApp();
 
   const [isWardDropdownOpen, setIsWardDropdownOpen] = useState(false);
@@ -204,6 +206,17 @@ export const Navbar: React.FC = () => {
           >
             <Eye className="w-4 h-4" />
             <span className="hidden md:inline">Tương phản</span>
+          </button>
+
+          {/* Interactive AI Assistant Robot Launch Button */}
+          <button
+            onClick={openAIAssistant}
+            className="px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm bg-gradient-to-r from-[#be111a] to-[#990e15] hover:from-red-600 hover:to-[#be111a] text-white transition-all transform hover:scale-105 active:scale-95 cursor-pointer ring-2 ring-red-100"
+            title="Mở Trợ lý AI Một Cửa - Hướng dẫn thủ tục bằng giọng nói"
+          >
+            <AIAssistantIcon className="w-4 h-4 text-white" />
+            <span className="hidden sm:inline">Trợ lý AI</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
           </button>
 
           {/* Voice Prompt Play/Stop */}
