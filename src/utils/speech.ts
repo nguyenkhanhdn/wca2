@@ -61,14 +61,26 @@ export const prepareVietnameseSpokenText = (rawText: string): string => {
     .replace(/\bĐc\.?\s+(?=[A-ZÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴĐ])/g, 'đồng chí ')
     .replace(/\bđc\.?\s+(?=[A-ZÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴĐ])/g, 'đồng chí ');
 
-  // 2. Expand "AI" to "Ây-ai" (avoiding false positives like "gặp ai", "ai làm", "cho ai")
-  // All uppercase standalone "AI" or "Ai" in tech/admin context
+  // 2. Expand "AI" to "Ây ai" (ensuring exactly "Ây ai", never duplicate "Ây Ây ai", while preserving Vietnamese pronoun "ai")
+  // First collapse any existing duplicate "Ây Ây" or "Ây-ai"
   text = text
-    .replace(/\bAI\b/g, 'Ây-ai')
-    .replace(/\bAi\b/g, 'Ây-ai')
-    // Phrases like "trợ lý ai", "người máy ai", "công nghệ ai", "hỏi ai", "hệ thống ai"
-    .replace(/(trợ lý|người máy|hệ thống|công nghệ|hỏi|chat|nói chuyện với)\s+ai\b/gi, '$1 Ây-ai')
-    .replace(/\bai\s+(một cửa|trợ giúp|thủ tục)\b/gi, 'Ây-ai $1');
+    .replace(/Ây\s+Ây\s+ai/gi, 'Ây ai')
+    .replace(/Ây-Ây-ai/gi, 'Ây ai')
+    .replace(/Ây-ai/gi, 'Ây ai');
+
+  // Replace exact uppercase AI, Ai, A.I. with Ây ai (never when preceded by Ây or Vi En)
+  text = text.replace(/(?<!(?:Ây|ây|Vi\s+En|vi\s+en)\s*)\bA\.?I\.?\b/g, 'Ây ai');
+
+  // Replace lowercase "ai" only when immediately tied to AI concepts: "trợ lý ai", "người máy ai"
+  text = text
+    .replace(/\b(trợ lý|người máy|công nghệ|hệ thống)\s+ai\b/gi, '$1 Ây ai');
+
+  // Post-replacement safety deduplication:
+  // If "Ây" was followed by another "Ây" or "Ây ai", collapse to single "Ây ai"
+  text = text
+    .replace(/Ây\s+Ây\s+ai/gi, 'Ây ai')
+    .replace(/ây\s+ây\s+ai/gi, 'ây ai')
+    .replace(/Ây\s+Ây/gi, 'Ây');
 
   // 3. Administrative Acronym Expansion for natural listening
   text = text
