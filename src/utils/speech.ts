@@ -1,6 +1,29 @@
 // Web Speech Synthesis (TTS) and Web Speech Recognition (STT) for Vietnamese
+// Optimized for senior citizens: High naturalness, correct pronunciation ("AI" -> "Ây-ai", "Đ/c" -> "đồng chí"), 
+// robust sentence queueing that never cuts off mid-speech, and automatic voice enhancement.
 
-let activeUtterance: SpeechSynthesisUtterance | null = null;
+let activeUtterances: SpeechSynthesisUtterance[] = [];
+let speechQueue: string[] = [];
+let isQueuePlaying = false;
+let heartbeatInterval: any = null;
+let currentOnEndCallback: (() => void) | null = null;
+let currentOnErrorCallback: ((err: any) => void) | null = null;
+let cachedVoices: SpeechSynthesisVoice[] = [];
+
+// Ensure voices are cached as soon as available in browser
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  const updateVoices = () => {
+    try {
+      cachedVoices = window.speechSynthesis.getVoices();
+    } catch {
+      // Ignore
+    }
+  };
+  updateVoices();
+  if (window.speechSynthesis.onvoiceschanged !== undefined) {
+    window.speechSynthesis.onvoiceschanged = updateVoices;
+  }
+}
 
 export const isSpeechSynthesisSupported = (): boolean => {
   return typeof window !== 'undefined' && 'speechSynthesis' in window;
@@ -11,21 +34,199 @@ export const isSpeechRecognitionSupported = (): boolean => {
     ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
 };
 
-export const getVietnameseVoice = (): SpeechSynthesisVoice | null => {
-  if (!isSpeechSynthesisSupported()) return null;
-  const voices = window.speechSynthesis.getVoices();
-  // Try finding a Vietnamese voice
-  const viVoice = voices.find(v => v.lang.toLowerCase().startsWith('vi') || v.lang.toLowerCase().includes('vn'));
-  return viVoice || (voices.length > 0 ? voices[0] : null);
+/**
+ * Phonetically and prosodically prepares Vietnamese text for natural, human-like TTS:
+ * - Pronounces "AI" as "Ây-ai" (while preserving Vietnamese word "ai" like "gặp ai", "ai đó")
+ * - Expands "Đ/c" or "đ/c" to "đồng chí"
+ * - Expands administrative acronyms: UBND -> Ủy ban nhân dân, TTHC -> thủ tục hành chính, CCCD -> Căn cước công dân...
+ * - Expands numbers and currency: 02 ngày -> hai ngày, 10.000 VNĐ -> mười nghìn đồng
+ * - Removes markdown, URLs, brackets, and awkward symbols
+ */
+export const prepareVietnameseSpokenText = (rawText: string): string => {
+  if (!rawText) return '';
+
+  let text = rawText
+    // Remove URLs
+    .replace(/https?:\/\/\S+/g, '')
+    // Remove markdown symbols: asterisks, hashtags, backticks, underscores, brackets
+    .replace(/[*_#`~[\]]/g, ' ')
+    // Normalize dashes and slashes
+    .replace(/[-–—]/g, ' ')
+    .replace(/\s+/g, ' ');
+
+  // 1. Expand "Đ/c" / "đ/c" to "đồng chí"
+  text = text
+    .replace(/\bĐ\/c\.?\s*/gi, 'đồng chí ')
+    .replace(/\bđ\/c\.?\s*/gi, 'đồng chí ')
+    .replace(/\bĐc\.?\s+(?=[A-ZÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴĐ])/g, 'đồng chí ')
+    .replace(/\bđc\.?\s+(?=[A-ZÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴĐ])/g, 'đồng chí ');
+
+  // 2. Expand "AI" to "Ây-ai" (avoiding false positives like "gặp ai", "ai làm", "cho ai")
+  // All uppercase standalone "AI" or "Ai" in tech/admin context
+  text = text
+    .replace(/\bAI\b/g, 'Ây-ai')
+    .replace(/\bAi\b/g, 'Ây-ai')
+    // Phrases like "trợ lý ai", "người máy ai", "công nghệ ai", "hỏi ai", "hệ thống ai"
+    .replace(/(trợ lý|người máy|hệ thống|công nghệ|hỏi|chat|nói chuyện với)\s+ai\b/gi, '$1 Ây-ai')
+    .replace(/\bai\s+(một cửa|trợ giúp|thủ tục)\b/gi, 'Ây-ai $1');
+
+  // 3. Administrative Acronym Expansion for natural listening
+  text = text
+    .replace(/\bUBND\b/g, 'Ủy ban nhân dân')
+    .replace(/\bTTHC\b/gi, 'thủ tục hành chính')
+    .replace(/\bCCCD\b/g, 'Căn cước công dân')
+    .replace(/\bBHYT\b/g, 'Bảo hiểm y tế')
+    .replace(/\bVNe-?ID\b/gi, 'Vi En Ai đi')
+    .replace(/\bvneid\b/gi, 'Vi En Ai đi')
+    .replace(/\bTP\.?\s*Đà Nẵng\b/gi, 'Thành phố Đà Nẵng')
+    .replace(/\bP\.?\s*Sơn Trà\b/gi, 'Phường Sơn Trà');
+
+  // 4. Numbers and Currency normalization
+  text = text
+    // 01, 02, 03... ngày
+    .replace(/\b01\s+ngày\b/gi, 'một ngày')
+    .replace(/\b02\s+ngày\b/gi, 'hai ngày')
+    .replace(/\b03\s+ngày\b/gi, 'ba ngày')
+    .replace(/\b05\s+ngày\b/gi, 'năm ngày')
+    // Currency: 10.000 VNĐ, 20.000 VNĐ...
+    .replace(/(\d+)\.000\s*(?:VNĐ|vnd|đ|đồng)?/gi, '$1 nghìn đồng')
+    .replace(/\bVNĐ\b|\bVND\b/gi, 'đồng')
+    // Clean up residual parentheses
+    .replace(/[()]/g, ', ');
+
+  // Remove duplicate commas or spaces
+  text = text
+    .replace(/,\s*,+/g, ',')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return text;
 };
 
+/**
+ * Finds the highest quality, most natural sounding Vietnamese voice available in the browser.
+ * Prioritizes Microsoft Online (Natural) voices, Google Tiếng Việt, and Apple Enhanced voices.
+ */
+export const getVietnameseVoice = (): SpeechSynthesisVoice | null => {
+  if (!isSpeechSynthesisSupported()) return null;
+  
+  let voices = cachedVoices;
+  if (!voices || voices.length === 0) {
+    try {
+      voices = window.speechSynthesis.getVoices();
+      cachedVoices = voices;
+    } catch {
+      voices = [];
+    }
+  }
+
+  if (voices.length === 0) return null;
+
+  // Filter Vietnamese voices
+  const viVoices = voices.filter(v => 
+    v.lang.toLowerCase().startsWith('vi') || 
+    v.lang.toLowerCase().includes('vn') ||
+    v.name.toLowerCase().includes('vietnam') ||
+    v.name.toLowerCase().includes('vietnamese')
+  );
+
+  if (viVoices.length === 0) {
+    // If no explicit vi voice, try default or first voice
+    return voices[0] || null;
+  }
+
+  // Rank 1: Microsoft Natural / Online voices (e.g. Microsoft HoaiMy Online (Natural) - Vietnamese)
+  const naturalVoice = viVoices.find(v => 
+    v.name.toLowerCase().includes('natural') || 
+    v.name.toLowerCase().includes('online') ||
+    v.name.toLowerCase().includes('neural')
+  );
+  if (naturalVoice) return naturalVoice;
+
+  // Rank 2: Google Vietnamese (Google Tiếng Việt)
+  const googleVoice = viVoices.find(v => v.name.toLowerCase().includes('google'));
+  if (googleVoice) return googleVoice;
+
+  // Rank 3: Apple Enhanced / Premium Vietnamese voice
+  const appleEnhanced = viVoices.find(v => 
+    v.name.toLowerCase().includes('enhanced') || 
+    v.name.toLowerCase().includes('premium')
+  );
+  if (appleEnhanced) return appleEnhanced;
+
+  // Rank 4: Any vi-VN voice
+  const standardViVN = viVoices.find(v => v.lang.toLowerCase() === 'vi-vn');
+  if (standardViVN) return standardViVN;
+
+  return viVoices[0];
+};
+
+/**
+ * Clears speech queue and halts all ongoing speech synthesis immediately.
+ */
 export const stopSpeaking = () => {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
+  }
+  isQueuePlaying = false;
+  speechQueue = [];
+  activeUtterances = [];
+
   if (isSpeechSynthesisSupported()) {
-    window.speechSynthesis.cancel();
-    activeUtterance = null;
+    try {
+      window.speechSynthesis.cancel();
+    } catch (e) {
+      console.warn('Error cancelling speech synthesis:', e);
+    }
+  }
+
+  if (currentOnEndCallback) {
+    const cb = currentOnEndCallback;
+    currentOnEndCallback = null;
+    cb();
   }
 };
 
+/**
+ * Splits long text into natural sentence-level chunks at punctuation boundaries (. ! ? ; \n).
+ * This prevents the browser 15-second speech synthesis cutoff bug and produces
+ * human-like pacing with natural breathing pauses between sentences.
+ */
+const splitIntoSentences = (text: string): string[] => {
+  const normalized = text.replace(/([.!?;\n])\s+/g, '$1|');
+  const rawParts = normalized.split('|');
+  const sentences: string[] = [];
+
+  for (let part of rawParts) {
+    part = part.trim();
+    if (!part) continue;
+
+    // If a sentence is still unusually long (> 160 chars), break it at commas
+    if (part.length > 160) {
+      const subParts = part.split(/,\s+/);
+      let buffer = '';
+      for (const sub of subParts) {
+        if ((buffer + ', ' + sub).length > 140) {
+          if (buffer) sentences.push(buffer.trim());
+          buffer = sub;
+        } else {
+          buffer = buffer ? `${buffer}, ${sub}` : sub;
+        }
+      }
+      if (buffer.trim()) sentences.push(buffer.trim());
+    } else {
+      sentences.push(part);
+    }
+  }
+
+  return sentences.length > 0 ? sentences : [text];
+};
+
+/**
+ * High-quality, robust Vietnamese speech synthesis.
+ * Uses sentence queueing to prevent premature cut-off and applies phonetic expansions.
+ */
 export const speakText = (
   text: string, 
   speed: number = 0.9, 
@@ -39,44 +240,102 @@ export const speakText = (
     return;
   }
 
-  // Cancel any ongoing speech
-  window.speechSynthesis.cancel();
+  // Stop any previous speech & reset queue
+  stopSpeaking();
 
-  // Clean text of markdown or URLs
-  const cleanText = text
-    .replace(/[*_#`~[\]]/g, ' ')
-    .replace(/https?:\/\/\S+/g, '')
-    .trim();
+  const preparedText = prepareVietnameseSpokenText(text);
+  if (!preparedText) return;
 
-  if (!cleanText) return;
+  const sentences = splitIntoSentences(preparedText);
+  if (sentences.length === 0) return;
 
-  const utterance = new SpeechSynthesisUtterance(cleanText);
-  utterance.lang = 'vi-VN';
-  utterance.rate = Math.max(0.7, Math.min(1.5, speed));
-  utterance.pitch = 1.0;
+  speechQueue = [...sentences];
+  isQueuePlaying = true;
+  currentOnEndCallback = onEnd || null;
+  currentOnErrorCallback = onError || null;
 
-  const voice = getVietnameseVoice();
-  if (voice) {
-    utterance.voice = voice;
-  }
+  // Signal speech start
+  onStart?.();
 
-  utterance.onstart = () => {
-    onStart?.();
+  // Chromium keep-alive heartbeat: prevents speech engine from pausing indefinitely on long passages
+  if (heartbeatInterval) clearInterval(heartbeatInterval);
+  heartbeatInterval = setInterval(() => {
+    if (isQueuePlaying && window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+      try {
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+      } catch {
+        // Ignore
+      }
+    }
+  }, 7000);
+
+  // Play next sentence in queue
+  const playNext = () => {
+    if (!isQueuePlaying) return;
+
+    if (speechQueue.length === 0) {
+      // Completed all sentences
+      isQueuePlaying = false;
+      if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+        heartbeatInterval = null;
+      }
+      activeUtterances = [];
+      const cb = currentOnEndCallback;
+      currentOnEndCallback = null;
+      cb?.();
+      return;
+    }
+
+    const currentSentence = speechQueue.shift()!;
+    const utterance = new SpeechSynthesisUtterance(currentSentence);
+    utterance.lang = 'vi-VN';
+    // Gentle, natural reading speed (0.88 - 0.92 is optimal for elderly citizens)
+    utterance.rate = Math.max(0.75, Math.min(1.2, speed || 0.9));
+    utterance.pitch = 1.0;
+
+    const voice = getVietnameseVoice();
+    if (voice) {
+      utterance.voice = voice;
+    }
+
+    // Keep global reference so browser garbage collector does not destroy it
+    activeUtterances.push(utterance);
+    (window as any).__activeSpeechUtterance = utterance;
+
+    utterance.onend = () => {
+      // Natural human breathing pause between sentences (120ms - 180ms)
+      setTimeout(() => {
+        if (isQueuePlaying) {
+          playNext();
+        }
+      }, 140);
+    };
+
+    utterance.onerror = (e: any) => {
+      console.warn('Utterance error or interrupted:', e);
+      if (e.error === 'interrupted' || e.error === 'canceled') {
+        // Normal cancel by user
+        return;
+      }
+      // On error, attempt next sentence rather than breaking completely
+      setTimeout(() => {
+        if (isQueuePlaying) {
+          playNext();
+        }
+      }, 100);
+    };
+
+    try {
+      window.speechSynthesis.speak(utterance);
+    } catch (err) {
+      console.error('Error invoking speak:', err);
+      currentOnErrorCallback?.(err);
+    }
   };
 
-  utterance.onend = () => {
-    activeUtterance = null;
-    onEnd?.();
-  };
-
-  utterance.onerror = (e) => {
-    activeUtterance = null;
-    console.error('Speech synthesis error:', e);
-    onError?.(e);
-  };
-
-  activeUtterance = utterance;
-  window.speechSynthesis.speak(utterance);
+  playNext();
 };
 
 // Normalize Vietnamese string for robust fuzzy matching
@@ -164,7 +423,7 @@ export class VoiceRecognizer {
     try {
       this.recognition.start();
     } catch (e) {
-      console.error('Error starting recognition:', e);
+      console.warn('Error starting recognition:', e);
     }
   }
 
@@ -173,7 +432,7 @@ export class VoiceRecognizer {
       try {
         this.recognition.stop();
       } catch (e) {
-        console.error('Error stopping recognition:', e);
+        console.warn('Error stopping recognition:', e);
       }
     }
   }

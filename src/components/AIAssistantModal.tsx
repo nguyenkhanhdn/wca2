@@ -31,7 +31,7 @@ interface AIAssistantModalProps {
   onClose: () => void;
 }
 
-const INACTIVITY_TIMEOUT_SECONDS = 20;
+const INACTIVITY_TIMEOUT_SECONDS = 25;
 
 export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
   isOpen,
@@ -61,6 +61,8 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
   const recognizerRef = useRef<VoiceRecognizer | null>(null);
   const countdownTimerRef = useRef<any>(null);
   const goodbyeTimerRef = useRef<any>(null);
+  const isSpeakingStateRef = useRef<boolean>(false);
+  const isListeningRef = useRef<boolean>(false);
 
   // Suggested spoken phrases for quick elderly citizen tapping
   const POPULAR_QUERIES = [
@@ -74,23 +76,46 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
     'Lấy số thứ tự ở đâu?'
   ];
 
-  // Reset inactivity timer back to 20s on any user interaction
+  // Reset inactivity timer back on user interaction
   const resetInactivityTimer = useCallback(() => {
     setSecondsRemaining(INACTIVITY_TIMEOUT_SECONDS);
   }, []);
 
-  // Safe wrapper for voice synthesis
+  // Safe wrapper for voice synthesis: ensures microphone does not pick up self-audio
+  // and prevents inactivity timer from interrupting speech playback
   const speakAI = useCallback((text: string, onEndCallback?: () => void) => {
+    // 1. Mute microphone while system is speaking to eliminate acoustic echo loop
+    if (recognizerRef.current) {
+      recognizerRef.current.stop();
+    }
+    setIsListening(false);
+    isListeningRef.current = false;
+
+    // 2. Mark speaking state
+    isSpeakingStateRef.current = true;
     setIsSpeakingState(true);
+    setSecondsRemaining(INACTIVITY_TIMEOUT_SECONDS);
+
     speakText(
       text,
-      0.92,
-      () => setIsSpeakingState(true),
+      0.90, // Optimal respectful, warm speed for Vietnamese citizens
       () => {
+        isSpeakingStateRef.current = true;
+        setIsSpeakingState(true);
+      },
+      () => {
+        isSpeakingStateRef.current = false;
         setIsSpeakingState(false);
+        // Reset countdown timer so citizen has full time to respond AFTER speech finishes
+        setSecondsRemaining(INACTIVITY_TIMEOUT_SECONDS);
         onEndCallback?.();
       },
-      () => setIsSpeakingState(false)
+      (err) => {
+        console.warn('Speech synthesis warning:', err);
+        isSpeakingStateRef.current = false;
+        setIsSpeakingState(false);
+        setSecondsRemaining(INACTIVITY_TIMEOUT_SECONDS);
+      }
     );
   }, []);
 
@@ -154,14 +179,16 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
   const handleAskAnother = () => {
     resetInactivityTimer();
     stopSpeaking();
+    isSpeakingStateRef.current = false;
+    setIsSpeakingState(false);
     setCurrentResult(null);
     setTranscript('');
     setCustomInput('');
     setIsConfirmedGoodbye(false);
     
     speakAI('Dạ thưa Bác! Bác cần cháu hỗ trợ thêm thủ tục gì nữa ạ? Bác nói vào micro nhé!', () => {
-      // Re-trigger mic if possible
-      if (recognizerRef.current) {
+      // Re-trigger mic if possible after prompt ends
+      if (recognizerRef.current && !isSpeakingStateRef.current) {
         recognizerRef.current.start();
       }
     });
@@ -170,6 +197,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
   // Handle View Detail and Print Guide
   const handleViewDetailAndPrint = (service: PublicService) => {
     stopSpeaking();
+    isSpeakingStateRef.current = false;
     selectService(service);
     if (currentResult?.counter) {
       selectCounter(currentResult.counter);
@@ -181,6 +209,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
   // Handle View Counter on Mindmap
   const handleViewCounterLocation = () => {
     stopSpeaking();
+    isSpeakingStateRef.current = false;
     if (currentResult?.counter) {
       selectCounter(currentResult.counter);
     }
@@ -194,8 +223,12 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
     if (!recognizerRef.current) return;
     if (isListening) {
       recognizerRef.current.stop();
+      isListeningRef.current = false;
+      setIsListening(false);
     } else {
       stopSpeaking();
+      isSpeakingStateRef.current = false;
+      setIsSpeakingState(false);
       setTranscript('');
       recognizerRef.current.start();
     }
@@ -205,6 +238,8 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
   useEffect(() => {
     if (!isOpen) {
       stopSpeaking();
+      isSpeakingStateRef.current = false;
+      isListeningRef.current = false;
       if (recognizerRef.current) {
         recognizerRef.current.stop();
       }
@@ -226,11 +261,11 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
     // Set initial countdown
     setSecondsRemaining(INACTIVITY_TIMEOUT_SECONDS);
 
-    // Initial polite spoken greeting
+    // Initial polite spoken greeting (TTS will automatically speak "AI" as "Ây-ai")
     const welcomeGreeting = `Kính chào Bác! Cháu là Trợ lý AI Một cửa Phường Sơn Trà. Bác cần tìm hiểu thủ tục gì hôm nay ạ? Bác hãy bấm vào micro và nói cho cháu nghe nhé!`;
     speakAI(welcomeGreeting, () => {
-      // After speaking welcome greeting, attempt to turn on listening
-      if (recognizerRef.current && !isListening) {
+      // After speaking welcome greeting, activate listening
+      if (recognizerRef.current && !isSpeakingStateRef.current) {
         recognizerRef.current.start();
       }
     });
@@ -238,6 +273,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
     // Create Speech Recognizer instance
     const recognizer = new VoiceRecognizer({
       onStart: () => {
+        isListeningRef.current = true;
         setIsListening(true);
         setErrorMessage(null);
       },
@@ -249,10 +285,12 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
         }
       },
       onError: (err) => {
+        isListeningRef.current = false;
         setIsListening(false);
         setErrorMessage(err);
       },
       onEnd: () => {
+        isListeningRef.current = false;
         setIsListening(false);
       }
     });
@@ -262,14 +300,22 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
     return () => {
       recognizer.stop();
       stopSpeaking();
+      isSpeakingStateRef.current = false;
+      isListeningRef.current = false;
     };
   }, [isOpen]);
 
-  // Countdown timer effect
+  // Countdown timer effect: guarantees the system never cuts off while instructions are being read aloud!
   useEffect(() => {
     if (!isOpen) return;
 
     countdownTimerRef.current = setInterval(() => {
+      // CRITICAL: NEVER decrement timer or cut off while the AI is speaking!
+      if (isSpeakingStateRef.current) {
+        setSecondsRemaining(INACTIVITY_TIMEOUT_SECONDS);
+        return;
+      }
+
       setSecondsRemaining(prev => {
         if (prev <= 1) {
           // Timeout expired without interaction -> return to standby
@@ -580,7 +626,9 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-slate-500">Cán bộ phụ trách:</span>
-                          <span className="font-extrabold text-[#be111a] text-sm">{currentResult.counter?.officerName}</span>
+                          <span className="font-extrabold text-[#be111a] text-sm">
+                            {currentResult.counter?.officerName.replace(/\bĐ\/c\.?\s*/i, 'Đồng chí ')}
+                          </span>
                         </div>
                         {currentResult.officer && (
                           <div className="flex items-center justify-between text-slate-600">
@@ -738,16 +786,23 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
 
         {/* Bottom Inactivity Countdown Bar */}
         <div className="px-5 sm:px-7 py-3 bg-slate-100 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2.5">
-          <div className="flex items-center gap-2 text-xs text-slate-600">
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
-            <span>
-              Tự động trở về màn hình chờ Kiosk sau:{' '}
-              <strong className="text-red-700 font-bold text-sm font-mono">
-                {secondsRemaining}s
-              </strong>{' '}
-              (Chạm vào màn hình để giữ lại)
-            </span>
-          </div>
+          {isSpeakingState ? (
+            <div className="flex items-center gap-2 text-xs font-bold text-red-700 bg-red-50 py-1 px-3 rounded-full border border-red-200 shadow-xs">
+              <Volume2 className="w-3.5 h-3.5 animate-pulse text-red-600" />
+              <span>Trợ lý AI đang đọc hướng dẫn chi tiết cho Bác... (Tạm dừng đếm ngược)</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-xs text-slate-600">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+              <span>
+                Tự động trở về màn hình chờ Kiosk sau:{' '}
+                <strong className="text-red-700 font-bold text-sm font-mono">
+                  {secondsRemaining}s
+                </strong>{' '}
+                (Chạm vào màn hình để tiếp tục)
+              </span>
+            </div>
+          )}
 
           <div className="flex items-center gap-3">
             <button

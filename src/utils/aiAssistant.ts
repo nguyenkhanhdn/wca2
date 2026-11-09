@@ -74,7 +74,7 @@ export const analyzeCitizenSpeech = (
     if ((normQuery.includes('khuyet tat') || normQuery.includes('tan tat') || normQuery.includes('da cam')) && srv.id === 'srv-tro-cap-khuyet-tat') score += 45;
     if ((normQuery.includes('hoc phi') || normQuery.includes('mien giam') || normQuery.includes('sinh vien')) && srv.id === 'srv-mien-giam-hoc-phi') score += 45;
     if ((normQuery.includes('thuoc la') || normQuery.includes('ruou') || normQuery.includes('bia')) && srv.id === 'srv-ban-le-thuoc-la-ruou') score += 45;
-    if ((normQuery.includes('vneid') || normQuery.includes('dinh danh') || normQuery.includes('online') || normQuery.includes('nop tren mang')) && srv.id === 'srv-ho-tro-vneid-dvc') score += 50;
+    if ((normQuery.includes('vneid') || normQuery.includes('vi en ai di') || normQuery.includes('dinh danh') || normQuery.includes('online') || normQuery.includes('nop tren mang')) && srv.id === 'srv-ho-tro-vneid-dvc') score += 50;
 
     if (score > highestScore) {
       highestScore = score;
@@ -94,7 +94,9 @@ export const analyzeCitizenSpeech = (
       .map(d => d.name)
       .join(', ');
 
-    const spoken = `Dạ thưa Bác! Với thủ tục ${bestMatch.name}, Bác vui lòng đến ${matchedCounter.code}, Bàn số ${matchedCounter.positionNumber} gặp ${matchedCounter.officerName} nhé ạ. ` +
+    const spokenOfficer = matchedCounter.officerName.replace(/\bĐ\/c\.?\s*/i, 'đồng chí ');
+
+    const spoken = `Dạ thưa Bác! Với thủ tục ${bestMatch.name}, Bác vui lòng đến ${matchedCounter.code}, Bàn số ${matchedCounter.positionNumber} gặp ${spokenOfficer} nhé ạ. ` +
       `Thời gian giải quyết là ${bestMatch.processingDuration}, lệ phí là ${bestMatch.fee}. ` +
       `Bác chỉ cần mang theo: ${docNames}. Bác kiểm tra thông tin chi tiết trên màn hình nhé! Bác đã nắm rõ chưa ạ?`;
 
