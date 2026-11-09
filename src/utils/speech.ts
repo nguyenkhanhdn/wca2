@@ -54,46 +54,50 @@ export const prepareVietnameseSpokenText = (rawText: string): string => {
     .replace(/[-–—]/g, ' ')
     .replace(/\s+/g, ' ');
 
-  // 1. Expand "Đ/c" / "đ/c" to "đồng chí"
+  // 1. Expand "Đ/c" / "đ/c" to "đồng chí" (handle Đ without ASCII \b boundary)
   text = text
-    .replace(/\bĐ\/c\.?\s*/gi, 'đồng chí ')
-    .replace(/\bđ\/c\.?\s*/gi, 'đồng chí ')
-    .replace(/\bĐc\.?\s+(?=[A-ZÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴĐ])/g, 'đồng chí ')
-    .replace(/\bđc\.?\s+(?=[A-ZÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴĐ])/g, 'đồng chí ');
+    .replace(/[Đđ]\/c\.?\s*/gi, 'đồng chí ')
+    .replace(/(?:\b|^)[Đđ]c\.?\s+(?=[A-ZÀ-Ỹ])/g, 'đồng chí ');
 
-  // 2. Expand "AI" to "Ây ai" (ensuring exactly "Ây ai", never duplicate "Ây Ây ai", while preserving Vietnamese pronoun "ai")
-  // First collapse any existing duplicate "Ây Ây" or "Ây-ai"
+  // 2. Slashes between alternatives: "Bệnh viện / Trạm y tế" -> "Bệnh viện hoặc Trạm y tế"
+  const VIET_CHARS = 'a-zA-Z0-9àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴĐ';
+  text = text.replace(new RegExp('([' + VIET_CHARS + ']+)\\s*\\/\\s*([' + VIET_CHARS + ']+)', 'g'), '$1 hoặc $2');
+  text = text.replace(/\//g, ' ');
+  text = text.replace(/\s+/g, ' ');
+
+  // 3. Expand "AI" to "Ây ai" (ensuring exactly "Ây ai", never duplicate "Ây Ây ai", while preserving Vietnamese pronoun "ai")
   text = text
     .replace(/Ây\s+Ây\s+ai/gi, 'Ây ai')
     .replace(/Ây-Ây-ai/gi, 'Ây ai')
     .replace(/Ây-ai/gi, 'Ây ai');
 
-  // Replace exact uppercase AI, Ai, A.I. with Ây ai (never when preceded by Ây or Vi En)
   text = text.replace(/(?<!(?:Ây|ây|Vi\s+En|vi\s+en)\s*)\bA\.?I\.?\b/g, 'Ây ai');
+  text = text.replace(/\b(trợ lý|người máy|công nghệ|hệ thống)\s+ai\b/gi, '$1 Ây ai');
 
-  // Replace lowercase "ai" only when immediately tied to AI concepts: "trợ lý ai", "người máy ai"
-  text = text
-    .replace(/\b(trợ lý|người máy|công nghệ|hệ thống)\s+ai\b/gi, '$1 Ây ai');
-
-  // Post-replacement safety deduplication:
-  // If "Ây" was followed by another "Ây" or "Ây ai", collapse to single "Ây ai"
   text = text
     .replace(/Ây\s+Ây\s+ai/gi, 'Ây ai')
     .replace(/ây\s+ây\s+ai/gi, 'ây ai')
     .replace(/Ây\s+Ây/gi, 'Ây');
 
-  // 3. Administrative Acronym Expansion for natural listening
+  // 4. Administrative Acronym Expansion
   text = text
     .replace(/\bUBND\b/g, 'Ủy ban nhân dân')
     .replace(/\bTTHC\b/gi, 'thủ tục hành chính')
     .replace(/\bCCCD\b/g, 'Căn cước công dân')
-    .replace(/\bBHYT\b/g, 'Bảo hiểm y tế')
+    // BHYT: read as "bảo hiểm i tế" so voice engine does not pronounce "y dài"
+    .replace(/\bBHYT\b/gi, 'bảo hiểm i tế')
     .replace(/\bVNe-?ID\b/gi, 'Vi En Ai đi')
     .replace(/\bvneid\b/gi, 'Vi En Ai đi')
     .replace(/\bTP\.?\s*Đà Nẵng\b/gi, 'Thành phố Đà Nẵng')
     .replace(/\bP\.?\s*Sơn Trà\b/gi, 'Phường Sơn Trà');
 
-  // 4. Numbers and Currency normalization
+  // 5. Ensure letter "y" is read as vowel sound "i", never spelled out as "y dài"
+  // Handles "y tế" -> "i tế", "sao y" -> "sao i", standalone "y" -> "i"
+  // Uses Vietnamese character boundary so accented words like "Giấy", "ngày", "mấy" are NOT modified
+  text = text.replace(new RegExp('(?<![' + VIET_CHARS + '])[Yy]\\s+tế(?![' + VIET_CHARS + '])', 'g'), 'i tế');
+  text = text.replace(new RegExp('(?<![' + VIET_CHARS + '])[Yy](?![' + VIET_CHARS + '])', 'g'), 'i');
+
+  // 6. Numbers and Currency normalization
   text = text
     // 01, 02, 03... ngày
     .replace(/\b01\s+ngày\b/gi, 'một ngày')
