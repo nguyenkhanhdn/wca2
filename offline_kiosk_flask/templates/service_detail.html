@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}{{ service.name }} - UBND Phường Sơn Trà{% endblock %}
+
+{% block extra_head %}
+<style>
+  @media print {
+    header, footer, .no-print, .btn-open-ai-assistant {
+      display: none !important;
+    }
+    main {
+      padding: 0 !important;
+      margin: 0 !important;
+      max-width: 100% !important;
+    }
+    .print-sheet {
+      border: 1px solid #333 !important;
+      padding: 20px !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Thanh điều hướng quay lại & Nút in phiếu hướng dẫn -->
+  <div class="no-print flex flex-wrap items-center justify-between gap-3">
+    <a href="/citizen" class="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 font-extrabold text-xs rounded-xl border border-slate-200 shadow-xs transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+      <span>Quay lại danh mục thủ tục</span>
+    </a>
+
+    <div class="flex items-center gap-2">
+      <!-- Nút phát giọng đọc toàn bộ hướng dẫn -->
+      <button id="btn-read-service" class="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xs rounded-xl shadow-xs flex items-center gap-2 cursor-pointer transition-all">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+        <span id="read-service-label">Đọc hướng dẫn thủ tục này</span>
+      </button>
+
+      <!-- Nút in phiếu hướng dẫn mang về -->
+      <button onclick="window.print()" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl shadow-xs flex items-center gap-2 cursor-pointer transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+        <span>In phiếu hướng dẫn mang về</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tờ phiếu hướng dẫn chuẩn Một Cửa (Hỗ trợ in ấn) -->
+  <div class="print-sheet bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+    
+    <!-- Tiêu đề hành chính khi in ấn -->
+    <div class="border-b-2 border-slate-200 pb-5">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="text-xs font-black text-red-800 bg-red-100 px-3 py-0.5 rounded-md font-mono">
+              Mã TTHC: {{ service.code }}
+            </span>
+            <span class="text-xs font-bold text-slate-500 uppercase">
+              UBND Phường Sơn Trà · Một Cửa
+            </span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
+            {{ service.name }}
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+            {{ service.summary }}
+          </p>
+        </div>
+
+        {% if counter %}
+        <div class="p-3.5 bg-red-50 rounded-2xl border border-red-200 shrink-0 text-center sm:text-right">
+          <span class="text-[11px] font-extrabold text-[#be111a] uppercase block">Vị trí tiếp nhận</span>
+          <span class="text-base font-black text-red-950 block">{{ counter.code }} · Bàn {{ counter.positionNumber }}</span>
+          <span class="text-xs font-bold text-red-800 block mt-0.5">{{ counter.officerName or 'Cán bộ trực tiếp' }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Hộp thông tin Lệ phí & Thời hạn giải quyết -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="p-5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 space-y-1">
+        <span class="text-xs font-black text-emerald-900 uppercase tracking-wide">MỨC PHÍ & LỆ PHÍ NHÀ NƯỚC</span>
+        <div class="text-lg sm:text-xl font-black text-emerald-950">{{ service.fee }}</div>
+        <p class="text-xs text-emerald-800">Thu theo đúng quy định niêm yết công khai của HĐND & UBND TP Đà Nẵng</p>
+      </div>
+
+      <div class="p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 space-y-1">
+        <span class="text-xs font-black text-amber-900 uppercase tracking-wide">THỜI HẠN GIẢI QUYẾT HỒ SƠ</span>
+        <div class="text-lg sm:text-xl font-black text-amber-950">{{ service.processingDuration }}</div>
+        <p class="text-xs text-amber-800">Tính theo ngày làm việc hành chính từ khi nhận đủ hồ sơ hợp lệ</p>
+      </div>
+    </div>
+
+    <!-- Thành phần hồ sơ & giấy tờ cần mang theo -->
+    <div class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-black text-slate-900 uppercase flex items-center gap-2">
+          <span>📋</span>
+          <span>THÀNH PHẦN HỒ SƠ, GIẤY TỜ CẦN CHUẨN BỊ ({{ service.requiredDocuments|length }} LOẠI)</span>
+        </h3>
+        <span class="text-xs text-slate-500 italic">Người dân kiểm tra kỹ trước khi nộp</span>
+      </div>
+
+      <div class="space-y-2.5">
+        {% for doc in service.requiredDocuments %}
+        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-start justify-between gap-3">
+          <div class="flex items-start gap-3">
+            <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-800 font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5">
+              {{ loop.index }}
+            </span>
+            <div>
+              <h4 class="text-sm font-black text-slate-900">{{ doc.name }}</h4>
+              {% if doc.note %}
+              <p class="text-xs text-slate-600 mt-0.5">{{ doc.note }}</p>
+              {% endif %}
+            </div>
+          </div>
+
+          <span class="shrink-0 text-xs font-black px-2.5 py-1 rounded-md {% if doc.isRequired %}bg-red-100 text-red-800 border border-red-200{% else %}bg-slate-200 text-slate-700{% endif %}">
+            {% if doc.isRequired %}Bắt buộc{% else %}Bản sao / Đối chiếu{% endif %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Quy trình các bước thực hiện -->
+    <div class="space-y-3">
+      <h3 class="text-base font-black text-slate-900 uppercase flex items-center gap-2">
+        <span>🔄</span>
+        <span>QUY TRÌNH THỰC HIỆN CÁC BƯỚC</span>
+      </h3>
+
+      <div class="space-y-3">
+        {% for step in service.steps %}
+        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-start gap-4">
+          <div class="w-8 h-8 rounded-full bg-[#be111a] text-white font-black text-sm flex items-center justify-center shrink-0 shadow-xs">
+            {{ step.stepNumber }}
+          </div>
+          <div class="flex-1">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
+              <h4 class="text-sm font-black text-slate-900">{{ step.title }}</h4>
+              <span class="text-xs font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded border border-red-200 shrink-0">
+                {{ step.responsibleParty }}
+              </span>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">{{ step.description }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Thông tin cán bộ & Hỗ trợ công dân -->
+    {% if counter %}
+    <div class="p-5 bg-gradient-to-br from-slate-50 to-red-50/40 rounded-2xl border border-red-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div>
+        <span class="text-xs font-black text-[#be111a] uppercase block">Cán bộ một cửa trực tiếp giải quyết:</span>
+        <h4 class="text-lg font-black text-slate-900">{{ counter.officerName or 'Chuyên viên phụ trách' }}</h4>
+        <p class="text-xs text-slate-600 mt-0.5">Bàn tiếp nhận số {{ counter.positionNumber }} · {{ counter.name }}</p>
+      </div>
+
+      <div class="text-left md:text-right">
+        <span class="text-xs text-slate-500 block">Số điện thoại hỗ trợ Một Cửa:</span>
+        <span class="text-base font-black text-red-700 font-mono">{{ current_ward.hotline }}</span>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Các thủ tục liên quan cùng ô tiếp nhận -->
+  {% if related_services %}
+  <div class="no-print bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-3">
+    <h3 class="text-sm font-black text-slate-900 uppercase">Các thủ tục khác tại cùng {{ counter.code }} (Bàn {{ counter.positionNumber }})</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      {% for rel in related_services %}
+      <a href="/service/{{ rel.id }}" class="p-3 bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-xl transition-all">
+        <h4 class="text-xs font-bold text-slate-900 truncate">{{ rel.name }}</h4>
+        <span class="text-[11px] text-slate-500 mt-1 block">⏱️ {{ rel.processingDuration }} · {{ rel.fee }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="module">
+  import { speakText, stopSpeaking } from "{{ url_for('static', filename='js/speech.js') }}";
+
+  let isReading = false;
+  const readBtn = document.getElementById('btn-read-service');
+  const readLabel = document.getElementById('read-service-label');
+
+  if (readBtn) {
+    const textToRead = `Thủ tục {{ service.name }}. Mã thủ tục {{ service.code }}. Lệ phí: {{ service.fee }}. Thời hạn giải quyết: {{ service.processingDuration }}. Địa điểm tiếp nhận: {{ counter.code or 'Bộ phận một cửa' }}, Bàn số {{ counter.positionNumber or 1 }}, gặp đồng chí {{ (counter.officerName or 'Cán bộ phụ trách') | replace('Đ/c ', '') }}. Hồ sơ gồm có: {% for doc in service.requiredDocuments %}{{ doc.name }}, {% endfor %}. Bác hãy chuẩn bị đầy đủ hồ sơ theo hướng dẫn này nhé!`;
+
+    readBtn.addEventListener('click', () => {
+      if (isReading) {
+        stopSpeaking();
+        isReading = false;
+        readBtn.classList.remove('bg-red-600', 'text-white', 'animate-pulse');
+        readLabel.textContent = 'Đọc hướng dẫn thủ tục này';
+      } else {
+        isReading = true;
+        readBtn.classList.add('bg-red-600', 'text-white', 'animate-pulse');
+        readLabel.textContent = 'Đang đọc... Bấm để dừng';
+
+        speakText(textToRead, 0.90,
+          () => { isReading = true; },
+          () => {
+            isReading = false;
+            readBtn.classList.remove('bg-red-600', 'text-white', 'animate-pulse');
+            readLabel.textContent = 'Đọc hướng dẫn thủ tục này';
+          },
+          () => {
+            isReading = false;
+            readBtn.classList.remove('bg-red-600', 'text-white', 'animate-pulse');
+            readLabel.textContent = 'Đọc hướng dẫn thủ tục này';
+          }
+        );
+      }
+    });
+  }
+</script>
+{% endblock %}

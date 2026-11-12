@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Tra cứu Dịch vụ công Một cửa - UBND Phường Sơn Trà{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Tiêu đề trang & Thanh tìm kiếm -->
+  <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-4">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+      <div>
+        <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+          DANH MỤC THỦ TỤC HÀNH CHÍNH MỘT CỬA
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+          Tra cứu hồ sơ, thời hạn giải quyết, lệ phí và vị trí bàn tiếp nhận tại Phường Sơn Trà
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button class="btn-open-ai-assistant px-4 py-2 bg-red-50 hover:bg-red-100 text-[#be111a] border border-red-200 font-extrabold text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-xs">
+          <span>🤖</span>
+          <span>Nói tên thủ tục cần tìm</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Thanh tìm kiếm nhanh -->
+    <form method="GET" action="/citizen" class="relative flex items-center gap-2">
+      <input type="hidden" name="category" value="{{ selected_category }}">
+      <div class="relative flex-1">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+        <input 
+          type="text" 
+          name="search" 
+          value="{{ search_query }}" 
+          placeholder="Nhập tên thủ tục, từ khóa (ví dụ: khai sinh, kết hôn, hộ kinh doanh, bảo hiểm...)" 
+          class="w-full pl-11 pr-10 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-sm font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#be111a] focus:border-transparent transition-all"
+        >
+        {% if search_query %}
+        <a href="/citizen?category={{ selected_category }}" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600">
+          ✕
+        </a>
+        {% endif %}
+      </div>
+      <button type="submit" class="px-6 py-3 bg-[#be111a] hover:bg-red-700 text-white font-extrabold text-sm rounded-2xl shadow-sm transition-colors cursor-pointer">
+        Tìm kiếm
+      </button>
+    </form>
+
+    <!-- Các thẻ lọc theo lĩnh vực -->
+    <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">
+      <span class="text-xs font-bold text-slate-500 mr-1">Lĩnh vực:</span>
+      <a href="/citizen?category=all{% if search_query %}&search={{ search_query }}{% endif %}" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all {% if selected_category == 'all' %}bg-[#be111a] text-white shadow-xs{% else %}bg-slate-100 hover:bg-slate-200 text-slate-700{% endif %}">
+        Tất cả ({{ services|length }})
+      </a>
+      <a href="/citizen?category=tu-phap-ho-tich{% if search_query %}&search={{ search_query }}{% endif %}" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all {% if selected_category == 'tu-phap-ho-tich' %}bg-[#be111a] text-white shadow-xs{% else %}bg-slate-100 hover:bg-slate-200 text-slate-700{% endif %}">
+        Tư pháp - Hộ tịch
+      </a>
+      <a href="/citizen?category=van-hoa-y-te-xa-hoi{% if search_query %}&search={{ search_query }}{% endif %}" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all {% if selected_category == 'van-hoa-y-te-xa-hoi' %}bg-[#be111a] text-white shadow-xs{% else %}bg-slate-100 hover:bg-slate-200 text-slate-700{% endif %}">
+        Văn hóa - Giáo dục - Y tế
+      </a>
+      <a href="/citizen?category=dang-ky-kinh-doanh{% if search_query %}&search={{ search_query }}{% endif %}" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all {% if selected_category == 'dang-ky-kinh-doanh' %}bg-[#be111a] text-white shadow-xs{% else %}bg-slate-100 hover:bg-slate-200 text-slate-700{% endif %}">
+        Kinh doanh - An toàn thực phẩm
+      </a>
+      <a href="/citizen?category=dan-toc-ton-giao{% if search_query %}&search={{ search_query }}{% endif %}" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all {% if selected_category == 'dan-toc-ton-giao' %}bg-[#be111a] text-white shadow-xs{% else %}bg-slate-100 hover:bg-slate-200 text-slate-700{% endif %}">
+        Dân tộc - Tôn giáo
+      </a>
+      <a href="/citizen?category=cong-thuong-tthc-khac{% if search_query %}&search={{ search_query }}{% endif %}" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all {% if selected_category == 'cong-thuong-tthc-khac' %}bg-[#be111a] text-white shadow-xs{% else %}bg-slate-100 hover:bg-slate-200 text-slate-700{% endif %}">
+        Công Thương & Khác
+      </a>
+    </div>
+  </div>
+
+  <!-- Danh sách thủ tục hành chính -->
+  <div class="space-y-4">
+    {% if services %}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% for s in services %}
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-red-300 hover:shadow-md transition-all flex flex-col justify-between">
+          <div class="space-y-3">
+            
+            <!-- Đầu thẻ: Mã & Thẻ phổ biến -->
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] font-black text-red-800 bg-red-100 px-2.5 py-0.5 rounded-md font-mono">
+                  {{ s.code }}
+                </span>
+                {% if s.isPopular %}
+                <span class="text-[10px] font-black text-amber-900 bg-amber-100 px-2 py-0.5 rounded-md uppercase">
+                  Phổ biến
+                </span>
+                {% endif %}
+              </div>
+
+              {% if s.counter %}
+              <span class="text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-md">
+                {{ s.counter.code }} · Bàn {{ s.counter.positionNumber }}
+              </span>
+              {% endif %}
+            </div>
+
+            <!-- Tên thủ tục -->
+            <h3 class="text-base sm:text-lg font-black text-slate-900 leading-snug">
+              <a href="/service/{{ s.id }}" class="hover:text-[#be111a] transition-colors">
+                {{ s.name }}
+              </a>
+            </h3>
+
+            <!-- Mô tả tóm tắt -->
+            <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+              {{ s.summary }}
+            </p>
+
+            <!-- Lệ phí & Thời hạn -->
+            <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs">
+              <div>
+                <span class="text-slate-500 text-[11px] block">Lệ phí nhà nước:</span>
+                <span class="font-bold text-emerald-800 text-xs sm:text-sm">{{ s.fee }}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 text-[11px] block">Thời hạn xử lý:</span>
+                <span class="font-bold text-slate-800 text-xs sm:text-sm">{{ s.processingDuration }}</span>
+              </div>
+            </div>
+
+            <!-- Cán bộ phụ trách nếu có -->
+            {% if s.counter and s.counter.officerName %}
+            <div class="text-[11px] text-slate-600 flex items-center gap-1.5">
+              <span class="text-slate-400">Cán bộ phụ trách:</span>
+              <span class="font-bold text-red-700">{{ s.counter.officerName }}</span>
+            </div>
+            {% endif %}
+
+          </div>
+
+          <!-- Nút hành động -->
+          <div class="pt-4 mt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+            <a href="/service/{{ s.id }}" class="flex-1 py-2.5 bg-[#be111a] hover:bg-red-700 text-white font-black text-xs rounded-xl text-center shadow-xs transition-colors">
+              Xem quy trình, hồ sơ & In phiếu →
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="bg-white rounded-3xl p-12 text-center border border-slate-200 space-y-4">
+        <div class="w-16 h-16 mx-auto rounded-full bg-red-50 text-red-700 flex items-center justify-center text-2xl font-black">
+          🔍
+        </div>
+        <h3 class="text-lg font-black text-slate-800">Không tìm thấy thủ tục phù hợp</h3>
+        <p class="text-xs text-slate-500 max-w-md mx-auto">
+          Không có kết quả cho từ khóa "{{ search_query }}". Vui lòng kiểm tra lại từ khóa hoặc chạm vào nút Trợ lý AI để được hướng dẫn bằng giọng nói.
+        </p>
+        <div class="pt-2">
+          <a href="/citizen" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl">
+            Xem lại tất cả thủ tục
+          </a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

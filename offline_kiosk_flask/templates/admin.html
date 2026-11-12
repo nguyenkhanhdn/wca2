@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Quản trị Một cửa - UBND Phường Sơn Trà{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Tiêu đề trang quản trị & Thống kê hệ thống -->
+  <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="text-xs font-black text-white bg-slate-900 px-3 py-0.5 rounded-full uppercase">
+          Bảng Quản Trị Hệ Thống
+        </span>
+        <span class="text-xs text-slate-500 font-mono">SQLite Standalone</span>
+      </div>
+      <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+        QUẢN LÝ DỮ LIỆU DỊCH VỤ CÔNG & CÁN BỘ PHƯỜNG
+      </h2>
+      <p class="text-xs sm:text-sm text-slate-600 mt-1">
+        Chỉnh sửa thông tin lệ phí, thời hạn giải quyết, chuyên viên phụ trách và sao lưu cơ sở dữ liệu.
+      </p>
+    </div>
+
+    <!-- Nút tải trọn bộ Offline cho Windows -->
+    <div class="flex flex-wrap items-center gap-2">
+      <a href="/public/assets/dvc_sontra_offline_flask.zip" download="dvc_sontra_offline_flask.zip" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-xs flex items-center gap-2 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        <span>Tải bộ cài Windows Offline (.zip)</span>
+      </a>
+
+      <button id="btn-reset-db" class="px-4 py-2.5 bg-red-100 hover:bg-red-200 text-red-800 font-black text-xs rounded-xl border border-red-300 shadow-xs flex items-center gap-2 transition-colors cursor-pointer">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        <span>Khôi phục dữ liệu gốc</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Thẻ chỉ số tổng quan -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+      <span class="text-xs font-bold text-slate-500 uppercase block">Tổng số thủ tục</span>
+      <span class="text-2xl font-black text-[#be111a]">{{ services|length }}</span>
+      <span class="text-[11px] text-slate-400 block mt-0.5">Dịch vụ công Một cửa</span>
+    </div>
+
+    <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+      <span class="text-xs font-bold text-slate-500 uppercase block">Bàn & Ô tiếp nhận</span>
+      <span class="text-2xl font-black text-amber-600">{{ counters|length }}</span>
+      <span class="text-[11px] text-slate-400 block mt-0.5">8 Vị trí làm việc</span>
+    </div>
+
+    <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+      <span class="text-xs font-bold text-slate-500 uppercase block">Cán bộ phụ trách</span>
+      <span class="text-2xl font-black text-blue-600">{{ officers|length }}</span>
+      <span class="text-[11px] text-slate-400 block mt-0.5">Chuyên viên chính quy</span>
+    </div>
+
+    <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+      <span class="text-xs font-bold text-slate-500 uppercase block">Cơ sở dữ liệu</span>
+      <span class="text-lg font-black text-emerald-600 font-mono">SQLite3</span>
+      <span class="text-[11px] text-slate-400 block mt-0.5">dvc_sontra.db (Offline)</span>
+    </div>
+  </div>
+
+  <!-- Bảng danh sách 14 thủ tục hành chính & Nút chỉnh sửa nhanh -->
+  <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+    <div class="flex items-center justify-between">
+      <h3 class="text-base font-black text-slate-900 uppercase">Danh sách 14 Thủ tục hành chính</h3>
+      <a href="/api/backup" target="_blank" class="text-xs font-bold text-blue-600 hover:underline">
+        Xuất file sao lưu JSON →
+      </a>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr class="border-b border-slate-200 bg-slate-50 text-slate-600 font-black">
+            <th class="p-3">Mã TTHC</th>
+            <th class="p-3">Tên thủ tục</th>
+            <th class="p-3">Ô tiếp nhận</th>
+            <th class="p-3">Thời hạn</th>
+            <th class="p-3">Lệ phí</th>
+            <th class="p-3 text-right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for s in services %}
+          <tr class="hover:bg-slate-50/80 transition-colors">
+            <td class="p-3 font-mono font-bold text-red-700">{{ s.code }}</td>
+            <td class="p-3">
+              <span class="font-bold text-slate-900 block">{{ s.name }}</span>
+              <span class="text-[11px] text-slate-500">{{ s.summary|truncate(60) }}</span>
+            </td>
+            <td class="p-3 font-medium text-slate-700 whitespace-nowrap">
+              {% for c in counters if c.id == s.counterId %}
+                {{ c.code }} (Bàn {{ c.positionNumber }})
+              {% endfor %}
+            </td>
+            <td class="p-3 font-medium text-slate-700 whitespace-nowrap">{{ s.processingDuration }}</td>
+            <td class="p-3 font-extrabold text-emerald-800 whitespace-nowrap">{{ s.fee }}</td>
+            <td class="p-3 text-right whitespace-nowrap">
+              <button 
+                class="btn-edit-service px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-lg transition-colors cursor-pointer"
+                data-id="{{ s.id }}"
+                data-name="{{ s.name }}"
+                data-fee="{{ s.fee }}"
+                data-duration="{{ s.processingDuration }}"
+                data-summary="{{ s.summary }}"
+              >
+                Sửa
+              </button>
+              <a href="/service/{{ s.id }}" class="ml-1 px-3 py-1.5 bg-[#be111a] hover:bg-red-700 text-white font-bold rounded-lg transition-colors">
+                Xem
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Bảng danh sách 8 Ô & Chuyên viên phụ trách -->
+  <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+    <h3 class="text-base font-black text-slate-900 uppercase">Danh sách 8 Ô Tiếp nhận & Cán bộ phụ trách</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {% for c in counters %}
+      <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-start justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-xs font-black text-white bg-slate-800 px-2 py-0.5 rounded">
+              {{ c.code }} · Bàn {{ c.positionNumber }}
+            </span>
+            <span class="text-xs font-bold text-red-700">{{ c.officerName or 'Chưa phân công' }}</span>
+          </div>
+          <h4 class="text-sm font-black text-slate-900">{{ c.name }}</h4>
+          <p class="text-xs text-slate-600 mt-1">{{ c.description }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal Chỉnh sửa thủ tục -->
+<div id="edit-service-modal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+  <div class="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
+    <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+      <h3 class="text-base font-black text-slate-900">Chỉnh sửa thông tin Thủ tục</h3>
+      <button id="btn-close-edit" class="text-slate-400 hover:text-slate-600 font-bold text-lg cursor-pointer">✕</button>
+    </div>
+
+    <form id="edit-service-form" class="space-y-3">
+      <input type="hidden" id="edit-id">
+      
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Tên thủ tục:</label>
+        <input type="text" id="edit-name" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800" readonly>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Lệ phí nhà nước:</label>
+        <input type="text" id="edit-fee" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-red-500 focus:outline-none">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Thời hạn giải quyết:</label>
+        <input type="text" id="edit-duration" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-red-500 focus:outline-none">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Tóm tắt hướng dẫn:</label>
+        <textarea id="edit-summary" rows="3" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-red-500 focus:outline-none"></textarea>
+      </div>
+
+      <div class="pt-2 flex justify-end gap-2">
+        <button type="button" id="btn-cancel-edit" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-xl cursor-pointer">
+          Hủy bỏ
+        </button>
+        <button type="submit" class="px-5 py-2 bg-[#be111a] hover:bg-red-700 text-white text-xs font-bold rounded-xl cursor-pointer">
+          Lưu thay đổi
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Chỉnh sửa thủ tục
+  const modal = document.getElementById('edit-service-modal');
+  const closeBtn = document.getElementById('btn-close-edit');
+  const cancelBtn = document.getElementById('btn-cancel-edit');
+  const form = document.getElementById('edit-service-form');
+
+  document.querySelectorAll('.btn-edit-service').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('edit-id').value = btn.getAttribute('data-id');
+      document.getElementById('edit-name').value = btn.getAttribute('data-name');
+      document.getElementById('edit-fee').value = btn.getAttribute('data-fee');
+      document.getElementById('edit-duration').value = btn.getAttribute('data-duration');
+      document.getElementById('edit-summary').value = btn.getAttribute('data-summary');
+      modal.classList.remove('hidden');
+    });
+  });
+
+  const closeModal = () => modal.classList.add('hidden');
+  closeBtn?.addEventListener('click', closeModal);
+  cancelBtn?.addEventListener('click', closeModal);
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('edit-id').value;
+    const fee = document.getElementById('edit-fee').value;
+    const processingDuration = document.getElementById('edit-duration').value;
+    const summary = document.getElementById('edit-summary').value;
+
+    try {
+      const res = await fetch(`/api/services/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fee, processingDuration, summary })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Cập nhật thủ tục thành công!');
+        window.location.reload();
+      }
+    } catch (err) {
+      alert('Có lỗi xảy ra khi lưu: ' + err);
+    }
+  });
+
+  // Khôi phục dữ liệu gốc
+  document.getElementById('btn-reset-db')?.addEventListener('click', async () => {
+    if (confirm('Bác có chắc chắn muốn khôi phục toàn bộ dữ liệu thủ tục và cán bộ về mặc định ban đầu không?')) {
+      try {
+        const res = await fetch('/api/reset', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          alert('Đã khôi phục dữ liệu thành công!');
+          window.location.reload();
+        }
+      } catch (err) {
+        alert('Có lỗi xảy ra: ' + err);
+      }
+    }
+  });
+</script>
+{% endblock %}

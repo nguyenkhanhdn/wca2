@@ -625,6 +625,33 @@ export const AdminPanel: React.FC = () => {
         {activeTab === 'backup' && (
           <div className="max-w-3xl mx-auto space-y-6">
             
+            {/* Windows Offline Standalone Package (Python + Flask + SQLite) */}
+            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-3xl p-6 sm:p-8 border-2 border-emerald-300 shadow-xs">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <span className="text-[11px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full mb-1.5 inline-block">
+                    Dành cho Máy Kiosk Cảm ứng Offline
+                  </span>
+                  <h3 className="text-base sm:text-lg font-black text-emerald-950 flex items-center gap-2">
+                    <Download className="w-5 h-5 text-emerald-700" />
+                    Tải Trọn Bộ Ứng Dụng Ngoại Tuyến Windows (Python + Flask + SQLite)
+                  </h3>
+                  <p className="text-xs text-emerald-800 mt-1 leading-relaxed max-w-xl">
+                    Chạy hoàn toàn không cần kết nối internet trên máy tính Windows. Đã tích hợp sẵn cơ sở dữ liệu SQLite, 14 thủ tục, sơ đồ 8 ô bàn, và Trợ lý ảo AI đọc chuẩn tiếng Việt ("Ây ai", "đồng chí", "bảo hiểm i tế", "Vi En Ai đi"). Kèm file khởi chạy 1-click.
+                  </p>
+                </div>
+
+                <a
+                  href="/assets/dvc_sontra_offline_flask.zip"
+                  download="dvc_sontra_offline_flask.zip"
+                  className="shrink-0 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm flex items-center gap-2.5 transition-all shadow-md transform hover:-translate-y-0.5"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Tải File .ZIP (1.8 MB)</span>
+                </a>
+              </div>
+            </div>
+
             {/* Export */}
             <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs">
               <h3 className="text-base font-bold text-slate-900 mb-1 flex items-center gap-2">

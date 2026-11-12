@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Sơ đồ Bố trí 8 Ô Tiếp nhận - UBND Phường Sơn Trà{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Tiêu đề trang -->
+  <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="text-xs font-black text-[#be111a] bg-red-50 border border-red-200 px-3 py-0.5 rounded-full uppercase">
+          Sơ đồ Mặt bằng Điện tử
+        </span>
+        <span class="text-xs text-slate-500 font-medium">UBND Phường Sơn Trà</span>
+      </div>
+      <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+        SƠ ĐỒ BỐ TRÍ CÁC BÀN TIẾP NHẬN & CHUYÊN VIÊN PHỤ TRÁCH
+      </h2>
+      <p class="text-xs sm:text-sm text-slate-600 mt-1">
+        Bản đồ vị trí 8 bàn tiếp nhận hồ sơ, quầy hướng dẫn phát số thứ tự và khu vực tiện ích công dân.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button class="btn-open-ai-assistant px-4 py-2.5 bg-[#be111a] hover:bg-red-700 text-white font-extrabold text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-xs transition-colors">
+        <span>🤖</span>
+        <span>Hỏi vị trí ô bàn qua AI</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Sơ đồ trực quan dạng Grid bản đồ phân khu -->
+  <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+    
+    <!-- Cửa vào trung tâm & Quầy hướng dẫn -->
+    <div class="p-4 rounded-2xl bg-amber-50/80 border-2 border-amber-300 text-center space-y-1">
+      <span class="text-xs font-black uppercase text-amber-900 tracking-widest block">
+        🚪 CỬA VÀO CHÍNH BỘ PHẬN TIẾP NHẬN & TRẢ KẾT QUẢ MỘT CỬA
+      </span>
+      <p class="text-xs text-amber-800">
+        Quý công dân đến Quầy số 7 để lấy số thứ tự tự động và được cán bộ hướng dẫn viết tờ khai
+      </p>
+    </div>
+
+    <!-- 8 Thẻ ô bàn tiếp nhận -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {% for c in counters %}
+      <div class="p-5 rounded-2xl bg-slate-50 hover:bg-red-50/60 border-2 {% if c.code.startswith('Ô') %}border-slate-200 hover:border-red-300{% else %}border-emerald-200 bg-emerald-50/40{% endif %} transition-all flex flex-col justify-between group">
+        <div>
+          <!-- Badge mã ô và bàn -->
+          <div class="flex items-center justify-between mb-3">
+            <span class="px-2.5 py-1 rounded-lg text-xs font-black {% if c.code.startswith('Ô') %}bg-[#be111a] text-white{% else %}bg-emerald-700 text-white{% endif %}">
+              {{ c.code }}
+            </span>
+            <span class="text-xs font-black text-slate-500 font-mono">
+              BÀN {{ c.positionNumber }}
+            </span>
+          </div>
+
+          <h3 class="text-base font-black text-slate-900 group-hover:text-red-700 transition-colors leading-snug mb-1">
+            {{ c.name }}
+          </h3>
+
+          <div class="text-xs font-extrabold text-red-700 mb-2">
+            {{ c.officerName or 'Cán bộ ủy ban' }}
+          </div>
+
+          <p class="text-xs text-slate-600 leading-relaxed mb-4">
+            {{ c.description }}
+          </p>
+        </div>
+
+        <div class="pt-3 border-t border-slate-200/80 flex items-center justify-between">
+          <a href="/citizen?search={{ c.name | urlencode }}" class="text-xs font-black text-red-700 hover:text-red-900 flex items-center gap-1">
+            <span>Các thủ tục tại bàn này</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Khu vực tiện ích công dân phục vụ miễn phí -->
+    <div class="p-5 bg-blue-50 rounded-2xl border border-blue-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center text-lg font-black shrink-0">
+          ☕
+        </div>
+        <div>
+          <h4 class="text-sm font-black text-blue-950">Khu Tiện ích Công dân (Bàn 8)</h4>
+          <p class="text-xs text-blue-800">Cung cấp nước uống, quạt mát, máy tính tra cứu và photocopy hồ sơ miễn phí cho công dân.</p>
+        </div>
+      </div>
+      <div class="text-xs font-bold text-blue-900 shrink-0">
+        Phụ trách: Đ/c Mai Thị Thanh Tâm
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

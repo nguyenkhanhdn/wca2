@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Màn hình chờ Kiosk - UBND Phường Sơn Trà{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Khối chào mừng Kiosk lớn dành cho màn hình cảm ứng -->
+  <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#870b12] via-[#be111a] to-[#a30e16] text-white p-6 sm:p-10 shadow-xl border-4 border-yellow-400">
+    <!-- Họa tiết chìm phía sau -->
+    <div class="absolute -right-10 -bottom-10 w-96 h-96 bg-yellow-400/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute right-10 top-1/2 -translate-y-1/2 hidden md:block opacity-20 pointer-events-none">
+      <img src="{{ url_for('static', filename='assets/wcaicon_2763340a.png') }}" alt="" class="w-72 h-72 object-contain">
+    </div>
+
+    <div class="relative z-10 max-w-3xl space-y-4">
+      <div class="inline-flex items-center gap-2 px-3 py-1 bg-yellow-400/20 rounded-full border border-yellow-300/40 text-xs font-bold text-yellow-300 uppercase tracking-wider">
+        <span>Kiosk Thông Minh Tự Phục Vụ</span>
+        <span class="w-1.5 h-1.5 rounded-full bg-yellow-300"></span>
+        <span>Một Cửa Điện Tử</span>
+      </div>
+
+      <h2 class="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
+        BỘ PHẬN TIẾP NHẬN & TRẢ KẾT QUẢ<br>
+        <span class="text-yellow-300">ỦY BAN NHÂN DÂN PHƯỜNG SƠN TRÀ</span>
+      </h2>
+
+      <p class="text-sm sm:text-base text-red-100 font-medium leading-relaxed max-w-2xl">
+        Kính chào Quý công dân! Vui lòng chạm vào các ô tiếp nhận bên dưới hoặc sử dụng Trợ lý Ây AI để được hướng dẫn chi tiết quy trình, thành phần hồ sơ, mức thu lệ phí và thời hạn giải quyết.
+      </p>
+
+      <!-- Hai nút thao tác nhanh kích thước lớn cho Kiosk chạm -->
+      <div class="pt-2 flex flex-wrap items-center gap-3.5">
+        <a href="/citizen" class="px-7 py-3.5 bg-yellow-400 hover:bg-yellow-300 text-red-950 font-black text-sm sm:text-base rounded-2xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2.5">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          <span>CHẠM ĐỂ TRA CỨU THỦ TỤC</span>
+        </a>
+
+        <button class="btn-open-ai-assistant px-6 py-3.5 bg-white hover:bg-red-50 text-[#be111a] font-black text-sm sm:text-base rounded-2xl shadow-lg border-2 border-yellow-300 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2.5 cursor-pointer">
+          <span class="text-xl">🤖</span>
+          <span>NÓI VỚI TRỢ LÝ AI (MICRO)</span>
+        </button>
+
+        <a href="/mindmap" class="px-5 py-3.5 bg-black/25 hover:bg-black/35 text-white font-bold text-sm sm:text-base rounded-2xl border border-white/20 transition-all flex items-center gap-2">
+          <svg class="w-5 h-5 text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+          <span>Xem Sơ đồ 8 Ô</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Danh sách 8 Ô tiếp nhận và chuyên viên phụ trách (Khớp giao diện gốc của phường) -->
+  <section class="space-y-4">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <svg class="w-6 h-6 text-[#be111a]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+        <h3 class="text-lg sm:text-xl font-black text-slate-900 uppercase tracking-tight">
+          SƠ ĐỒ BỐ TRÍ CÁC Ô TIẾP NHẬN VÀ CHUYÊN VIÊN PHỤ TRÁCH PHƯỜNG SƠN TRÀ
+        </h3>
+      </div>
+      <span class="text-xs text-slate-500 italic font-medium">(chạm vào bất kỳ vị trí nào để tra cứu thủ tục)</span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {% for counter in counters %}
+      <div class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:shadow-md hover:border-red-400 transition-all duration-200 flex flex-col justify-between group">
+        <div>
+          <!-- Header ô: Mã ô & Số bàn -->
+          <div class="flex items-center justify-between mb-2.5">
+            <span class="px-2.5 py-1 rounded-md text-xs font-black tracking-wide {% if counter.code.startswith('Ô') %}text-[#be111a] bg-red-50 border border-red-200{% else %}text-emerald-800 bg-emerald-50 border border-emerald-200{% endif %}">
+              {{ counter.code }}
+            </span>
+            <span class="text-xs font-bold text-slate-500 font-mono">Bàn {{ counter.positionNumber }}</span>
+          </div>
+
+          <!-- Lĩnh vực phụ trách -->
+          <h4 class="text-base font-extrabold text-slate-900 group-hover:text-[#be111a] transition-colors leading-snug mb-1">
+            {{ counter.name }}
+          </h4>
+
+          <!-- Cán bộ phụ trách -->
+          <div class="text-xs font-bold text-red-700 mb-2">
+            {{ counter.officerName or 'Cán bộ ủy ban' }}
+          </div>
+
+          <!-- Mô tả công việc -->
+          <p class="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-4">
+            {{ counter.description }}
+          </p>
+        </div>
+
+        <!-- Nút liên kết xem thủ tục của ô này -->
+        <a href="/citizen?search={{ counter.name | urlencode }}" class="inline-flex items-center justify-between text-xs font-extrabold text-[#be111a] hover:text-red-800 pt-3 border-t border-slate-100 group-hover:border-red-100 transition-colors">
+          <span>Xem thủ tục</span>
+          <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Các dịch vụ công phổ biến công dân hay làm -->
+  <section class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-3">
+    <div class="flex items-center justify-between">
+      <h3 class="text-base font-black text-slate-900 uppercase">Thủ tục công dân thực hiện nhiều nhất</h3>
+      <a href="/citizen" class="text-xs font-bold text-red-700 hover:underline">Xem tất cả 14 thủ tục →</a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      {% for s in services[:6] %}
+      <a href="/service/{{ s.id }}" class="p-3.5 rounded-xl bg-slate-50 hover:bg-red-50/60 border border-slate-200 hover:border-red-200 transition-all flex items-start gap-3 group">
+        <span class="w-8 h-8 rounded-lg bg-red-100 text-red-800 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-[#be111a] group-hover:text-white transition-colors">
+          {{ loop.index }}
+        </span>
+        <div class="flex-1 min-w-0">
+          <h4 class="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-red-700 truncate">{{ s.name }}</h4>
+          <div class="flex items-center gap-2 mt-1 text-[11px] text-slate-500">
+            <span>⏱️ {{ s.processingDuration }}</span>
+            <span>·</span>
+            <span class="text-emerald-700 font-semibold">{{ s.fee }}</span>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+
+</div>
+{% endblock %}

@@ -10,7 +10,8 @@ import {
   Layers, 
   Tv, 
   ChevronDown,
-  Check
+  Check,
+  Download
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { AIAssistantIcon } from './AIAssistantIcon';
@@ -45,13 +46,25 @@ export const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
       {/* Top National Motto Bar (Màu đỏ cờ chuẩn Chính phủ #be111a) */}
-      <div className="bg-[#be111a] text-white py-1 px-4 text-center border-b border-amber-400">
-        <p className="text-[11px] sm:text-xs uppercase tracking-widest font-black text-amber-300">
-          CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
-        </p>
-        <p className="text-[10px] sm:text-[11px] font-semibold text-white tracking-wide border-b border-amber-300/60 inline-block pb-0.5">
-          Độc lập - Tự do - Hạnh phúc
-        </p>
+      <div className="bg-[#be111a] text-white py-1.5 px-4 border-b border-amber-400 flex items-center justify-between">
+        <div className="hidden md:block w-32"></div>
+        <div className="text-center flex-1">
+          <p className="text-[11px] sm:text-xs uppercase tracking-widest font-black text-amber-300">
+            CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+          </p>
+          <p className="text-[10px] sm:text-[11px] font-semibold text-white tracking-wide border-b border-amber-300/60 inline-block pb-0.5">
+            Độc lập - Tự do - Hạnh phúc
+          </p>
+        </div>
+        <a
+          href="/assets/dvc_sontra_offline_flask.zip"
+          download="dvc_sontra_offline_flask.zip"
+          className="text-[11px] bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-xs transition-transform hover:scale-105 active:scale-95 shrink-0 cursor-pointer"
+          title="Tải về trọn bộ cài đặt Offline cho Windows (Python + Flask + SQLite)"
+        >
+          <Download className="w-3 h-3" />
+          <span className="hidden sm:inline">Tải</span> Bộ Offline (.zip)
+        </a>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
@@ -151,6 +164,16 @@ export const Navbar: React.FC = () => {
             <Tv className="w-4 h-4" />
             Màn hình chờ Kiosk
           </button>
+
+          <a
+            href="/assets/dvc_sontra_offline_flask.zip"
+            download="dvc_sontra_offline_flask.zip"
+            className="flex items-center gap-1.5 py-1 text-emerald-700 hover:text-emerald-900 font-bold transition-colors whitespace-nowrap"
+            title="Tải về trọn bộ cài đặt Offline cho Windows (Python + Flask + SQLite)"
+          >
+            <Download className="w-4 h-4 text-emerald-600" />
+            <span>Tải bộ Offline</span>
+          </a>
         </nav>
 
         {/* Zone 3: Senior Citizen Accessibility Controls & Voice */}
