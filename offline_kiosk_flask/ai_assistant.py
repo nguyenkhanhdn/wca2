@@ -109,11 +109,18 @@ def analyze_citizen_speech(
 
         officer_raw = matched_counter.get('officerName', 'Cán bộ phụ trách')
         spoken_officer = re.sub(r'[Đđ]/c\.?\s*', 'đồng chí ', officer_raw)
+        raw_name = best_match.get('name', '')
+        clean_service_name = re.sub(r'^thủ\s+tục\s+', '', raw_name, flags=re.IGNORECASE)
+        fee_val = (best_match.get('fee') or '').strip()
+        if re.match(r'^miễn\s+phí', fee_val, flags=re.IGNORECASE):
+            fee_phrase = f"và được {fee_val[0].lower() + fee_val[1:] if fee_val else 'miễn phí'}"
+        else:
+            fee_phrase = f", lệ phí là {fee_val}"
 
         spoken = (
-            f"Dạ thưa Bác! Với thủ tục {best_match.get('name')}, Bác vui lòng đến {matched_counter.get('code')}, "
+            f"Dạ thưa Bác! Với thủ tục {clean_service_name}, Bác vui lòng đến {matched_counter.get('code')}, "
             f"Bàn số {matched_counter.get('positionNumber')} gặp {spoken_officer} nhé ạ. "
-            f"Thời gian giải quyết là {best_match.get('processingDuration')}, lệ phí là {best_match.get('fee')}. "
+            f"Thời gian giải quyết là {best_match.get('processingDuration')} {fee_phrase}. "
             f"Bác chỉ cần mang theo: {doc_names}. Bác kiểm tra thông tin chi tiết trên màn hình nhé! Bác đã nắm rõ chưa ạ?"
         )
 

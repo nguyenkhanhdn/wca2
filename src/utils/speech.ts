@@ -45,12 +45,28 @@ export const isSpeechRecognitionSupported = (): boolean => {
 export const prepareVietnameseSpokenText = (rawText: string): string => {
   if (!rawText) return '';
 
+  const VIET_CHARS = 'a-zA-Z0-9àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴĐ';
+
   let text = rawText
     // Remove URLs
     .replace(/https?:\/\/\S+/g, '')
     // Remove markdown symbols: asterisks, hashtags, backticks, underscores, brackets
     .replace(/[*_#`~[\]]/g, ' ')
-    // Normalize dashes and slashes
+    .replace(/\s+/g, ' ');
+
+  // 0. Expand time and numeric ranges BEFORE removing dashes:
+  // e.g. "07h30 - 11h30" -> "từ 7 giờ 30 đến 11 giờ 30", "15 - 30 ngày" -> "từ 15 đến 30 ngày"
+  text = text
+    .replace(/\b0?(\d{1,2})h00\b/gi, '$1 giờ')
+    .replace(/\b0?(\d{1,2})h(\d{2})\b/gi, '$1 giờ $2')
+    .replace(/(Thứ\s+\d)\s*[-–—]\s*(Thứ\s+\d)/gi, '$1 đến $2')
+    // Range already preceded by "từ" or "từ đủ" -> only convert dash to "đến"
+    .replace(/(từ\s+(?:đủ\s+)?)(\d+(?:\s*giờ(?:\s*\d+)?)?)\s*[-–—]\s*(\d+(?:\s*giờ(?:\s*\d+)?)?)/gi, '$1$2 đến $3')
+    // Standalone range like "15 - 30 ngày", "10-15 phút", "15 - 30 phút" -> "từ 15 đến 30 ..."
+    .replace(/(\d+(?:\s*giờ(?:\s*\d+)?)?)\s*[-–—]\s*(\d+(?:\s*giờ(?:\s*\d+)?)?)/gi, 'từ $1 đến $2');
+
+  // Now normalize remaining standalone dashes
+  text = text
     .replace(/[-–—]/g, ' ')
     .replace(/\s+/g, ' ');
 
@@ -60,7 +76,6 @@ export const prepareVietnameseSpokenText = (rawText: string): string => {
     .replace(/(?:\b|^)[Đđ]c\.?\s+(?=[A-ZÀ-Ỹ])/g, 'đồng chí ');
 
   // 2. Slashes between alternatives: "Bệnh viện / Trạm y tế" -> "Bệnh viện hoặc Trạm y tế"
-  const VIET_CHARS = 'a-zA-Z0-9àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴĐ';
   text = text.replace(new RegExp('([' + VIET_CHARS + ']+)\\s*\\/\\s*([' + VIET_CHARS + ']+)', 'g'), '$1 hoặc $2');
   text = text.replace(/\//g, ' ');
   text = text.replace(/\s+/g, ' ');
@@ -85,34 +100,46 @@ export const prepareVietnameseSpokenText = (rawText: string): string => {
     .replace(/\bTTHC\b/gi, 'thủ tục hành chính')
     .replace(/\bCCCD\b/g, 'Căn cước công dân')
     // BHYT: read as "bảo hiểm i tế" so voice engine does not pronounce "y dài"
-    .replace(/\bBHYT\b/gi, 'bảo hiểm i tế')
+    .replace(/\bBHYT\b/g, 'bảo hiểm i tế')
     .replace(/\bVNe-?ID\b/gi, 'Vi En Ai đi')
     .replace(/\bvneid\b/gi, 'Vi En Ai đi')
     .replace(/\bTP\.?\s*Đà Nẵng\b/gi, 'Thành phố Đà Nẵng')
     .replace(/\bP\.?\s*Sơn Trà\b/gi, 'Phường Sơn Trà');
 
   // 5. Ensure letter "y" is read as vowel sound "i", never spelled out as "y dài"
-  // Handles "y tế" -> "i tế", "sao y" -> "sao i", standalone "y" -> "i"
-  // Uses Vietnamese character boundary so accented words like "Giấy", "ngày", "mấy" are NOT modified
   text = text.replace(new RegExp('(?<![' + VIET_CHARS + '])[Yy]\\s+tế(?![' + VIET_CHARS + '])', 'g'), 'i tế');
   text = text.replace(new RegExp('(?<![' + VIET_CHARS + '])[Yy](?![' + VIET_CHARS + '])', 'g'), 'i');
 
   // 6. Numbers and Currency normalization
   text = text
-    // 01, 02, 03... ngày
-    .replace(/\b01\s+ngày\b/gi, 'một ngày')
-    .replace(/\b02\s+ngày\b/gi, 'hai ngày')
-    .replace(/\b03\s+ngày\b/gi, 'ba ngày')
-    .replace(/\b05\s+ngày\b/gi, 'năm ngày')
+    // 01, 02, 03... ngày / tháng / phút / giờ
+    .replace(/\b01\s+(ngày|tháng|năm|phút|giờ|bản|lần)\b/gi, 'một $1')
+    .replace(/\b02\s+(ngày|tháng|năm|phút|giờ|bản|lần)\b/gi, 'hai $1')
+    .replace(/\b03\s+(ngày|tháng|năm|phút|giờ|bản|lần)\b/gi, 'ba $1')
+    .replace(/\b04\s+(ngày|tháng|năm|phút|giờ|bản|lần)\b/gi, 'bốn $1')
+    .replace(/\b05\s+(ngày|tháng|năm|phút|giờ|bản|lần)\b/gi, 'năm $1')
+    .replace(/\b0([6-9])\s+(ngày|tháng|năm|phút|giờ|bản|lần)\b/gi, '$1 $2')
+    .replace(/\b0(\d)\s+đến\b/gi, '$1 đến')
+    .replace(/\bđến\s+0(\d)\b/gi, 'đến $1')
     // Currency: 10.000 VNĐ, 20.000 VNĐ...
     .replace(/(\d+)\.000\s*(?:VNĐ|vnd|đ|đồng)?/gi, '$1 nghìn đồng')
     .replace(/\bVNĐ\b|\bVND\b/gi, 'đồng')
     // Clean up residual parentheses
     .replace(/[()]/g, ', ');
 
-  // Remove duplicate commas or spaces
+  // 7. Deduplicate repeated consecutive administrative phrases & words (e.g. "thủ tục Thủ tục" -> "thủ tục", "từ từ 15" -> "từ 15")
+  const DUP_PHRASES = '(?:thủ tục hành chính|thủ tục|hồ sơ|giấy tờ|lệ phí|chi phí|đăng ký|chứng thực|xác nhận|đồng chí|bảo hiểm|căn cước|trợ lý|tờ khai|bản chính|bản sao|thời hạn|thời gian|kết quả|bệnh viện|trạm i tế|ủy ban|miễn phí|bắt buộc|bước|bàn|ô|số|mã|trang|lần)';
   text = text
+    .replace(new RegExp('(?<![' + VIET_CHARS + '])miễn\\s+phí\\s+lệ\\s+phí(?![' + VIET_CHARS + '])', 'gi'), 'miễn phí')
+    .replace(new RegExp('(?<![' + VIET_CHARS + '])từ\\s+từ(?=\\s+(?:đủ\\s+)?\\d)', 'gi'), 'từ')
+    .replace(new RegExp('(?<![' + VIET_CHARS + '])(' + DUP_PHRASES + ')\\s+\\1(?![' + VIET_CHARS + '])', 'gi'), '$1')
+    // Run a second pass in case triple repetition occurred
+    .replace(new RegExp('(?<![' + VIET_CHARS + '])(' + DUP_PHRASES + ')\\s+\\1(?![' + VIET_CHARS + '])', 'gi'), '$1')
+    // Remove duplicate/stray punctuation and spaces
+    .replace(/,\s*([.!?])/g, '$1')
     .replace(/,\s*,+/g, ',')
+    .replace(/\s+,/g, ',')
+    .replace(/,\s*$/g, '')
     .replace(/\s+/g, ' ')
     .trim();
 

@@ -201,7 +201,8 @@
   const readLabel = document.getElementById('read-service-label');
 
   if (readBtn) {
-    const textToRead = `Thủ tục {{ service.name }}. Mã thủ tục {{ service.code }}. Lệ phí: {{ service.fee }}. Thời hạn giải quyết: {{ service.processingDuration }}. Địa điểm tiếp nhận: {{ counter.code or 'Bộ phận một cửa' }}, Bàn số {{ counter.positionNumber or 1 }}, gặp đồng chí {{ (counter.officerName or 'Cán bộ phụ trách') | replace('Đ/c ', '') }}. Hồ sơ gồm có: {% for doc in service.requiredDocuments %}{{ doc.name }}, {% endfor %}. Bác hãy chuẩn bị đầy đủ hồ sơ theo hướng dẫn này nhé!`;
+    const rawServiceName = `{{ service.name }}`.replace(/^thủ\s+tục\s+/i, '');
+    const textToRead = `Thủ tục ${rawServiceName}. Mã hồ sơ {{ service.code }}. Lệ phí: {{ service.fee }}. Thời hạn giải quyết: {{ service.processingDuration }}. Địa điểm tiếp nhận: {{ counter.code or 'Bộ phận một cửa' }}, Bàn số {{ counter.positionNumber or 1 }}, gặp đồng chí {{ (counter.officerName or 'Cán bộ phụ trách') | replace('Đ/c ', '') }}. Hồ sơ gồm có: {% for doc in service.requiredDocuments %}{{ doc.name }}, {% endfor %}. Bác hãy chuẩn bị đầy đủ theo hướng dẫn này nhé!`;
 
     readBtn.addEventListener('click', () => {
       if (isReading) {

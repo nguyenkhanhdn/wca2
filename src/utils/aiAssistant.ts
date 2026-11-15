@@ -95,9 +95,13 @@ export const analyzeCitizenSpeech = (
       .join(', ');
 
     const spokenOfficer = matchedCounter.officerName.replace(/\bĐ\/c\.?\s*/i, 'đồng chí ');
+    const cleanServiceName = bestMatch.name.replace(/^thủ\s+tục\s+/i, '');
+    const feePhrase = /^miễn\s+phí/i.test(bestMatch.fee.trim())
+      ? `và được ${bestMatch.fee.charAt(0).toLowerCase() + bestMatch.fee.slice(1)}`
+      : `, lệ phí là ${bestMatch.fee}`;
 
-    const spoken = `Dạ thưa Bác! Với thủ tục ${bestMatch.name}, Bác vui lòng đến ${matchedCounter.code}, Bàn số ${matchedCounter.positionNumber} gặp ${spokenOfficer} nhé ạ. ` +
-      `Thời gian giải quyết là ${bestMatch.processingDuration}, lệ phí là ${bestMatch.fee}. ` +
+    const spoken = `Dạ thưa Bác! Với thủ tục ${cleanServiceName}, Bác vui lòng đến ${matchedCounter.code}, Bàn số ${matchedCounter.positionNumber} gặp ${spokenOfficer} nhé ạ. ` +
+      `Thời gian giải quyết là ${bestMatch.processingDuration} ${feePhrase}. ` +
       `Bác chỉ cần mang theo: ${docNames}. Bác kiểm tra thông tin chi tiết trên màn hình nhé! Bác đã nắm rõ chưa ạ?`;
 
     return {

@@ -312,7 +312,7 @@
       "summary": "Làm giấy khai sinh cho trẻ mới sinh, đồng thời tự động đăng ký nơi cư trú và cấp thẻ bảo hiểm y tế miễn phí.",
       "processingDuration": "Trong ngày (tối đa 02 ngày làm việc khi liên thông)",
       "fee": "Miễn phí cho trẻ em đăng ký đúng hạn",
-      "audioScript": "Kính chào Bác! Để làm giấy khai sinh cho cháu, Bác cần chuẩn bị: Giấy chứng sinh bản chính từ bệnh viện, Căn cước công dân của cha hoặc mẹ, và Giấy chứng nhận kết hôn nếu có. Bác đến nộp tại Ô số 1, gặp đồng chí Đinh Phú Thịnh. Thủ tục này hoàn toàn miễn phí lệ phí cho trẻ em.",
+      "audioScript": "Kính chào Bác! Để làm giấy khai sinh cho cháu, Bác cần chuẩn bị: Giấy chứng sinh bản chính từ bệnh viện, Căn cước công dân của cha hoặc mẹ, và Giấy chứng nhận kết hôn nếu có. Bác đến nộp tại Ô số 1, gặp đồng chí Đinh Phú Thịnh. Thủ tục này hoàn toàn miễn phí cho trẻ em.",
       "searchKeywords": [
         "khai sinh",
         "sinh con",
@@ -948,7 +948,7 @@
       "id": "srv-tro-cap-nguoi-cao-tuoi",
       "wardId": "ward-sontra",
       "code": "1.000412",
-      "name": "Thủ tục Hưởng Trợ cấp Xã hội hàng tháng cho Người Cao tuổi",
+      "name": "Hưởng Trợ cấp Xã hội hàng tháng cho Người Cao tuổi",
       "category": "van_hoa_giao_duc_y_te",
       "level": "mot_phan",
       "counterId": "counter-5",
