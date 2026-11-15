@@ -18,7 +18,9 @@ import {
   ChevronRight,
   ShieldCheck,
   Building2,
-  Check
+  Check,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { AIAssistantIcon } from './AIAssistantIcon';
@@ -57,6 +59,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
   const [currentResult, setCurrentResult] = useState<AIAnalysisResult | null>(null);
   const [isConfirmedGoodbye, setIsConfirmedGoodbye] = useState(false);
   const [secondsRemaining, setSecondsRemaining] = useState(INACTIVITY_TIMEOUT_SECONDS);
+  const [isMaximized, setIsMaximized] = useState(false);
 
   const recognizerRef = useRef<VoiceRecognizer | null>(null);
   const countdownTimerRef = useRef<any>(null);
@@ -340,27 +343,33 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/75 backdrop-blur-md animate-fade-in"
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-md animate-fade-in transition-all ${
+        isMaximized ? 'p-0' : 'p-2 sm:p-4'
+      }`}
       onClick={resetInactivityTimer}
       onTouchStart={resetInactivityTimer}
     >
       <div 
-        className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] transition-all"
+        className={`bg-white shadow-2xl overflow-hidden flex flex-col transition-all ${
+          isMaximized
+            ? 'w-screen h-screen max-w-none max-h-none rounded-none border-0'
+            : 'w-[96vw] max-w-6xl h-[94vh] max-h-[94vh] rounded-2xl sm:rounded-3xl border border-slate-200'
+        }`}
         onClick={e => e.stopPropagation()}
       >
         {/* Top Header */}
-        <div className="flex items-center justify-between px-5 sm:px-7 py-4 bg-gradient-to-r from-[#990e15] via-[#be111a] to-[#8f0d13] text-white shadow-md">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-3.5 bg-gradient-to-r from-[#990e15] via-[#be111a] to-[#8f0d13] text-white shadow-md shrink-0">
           <div className="flex items-center gap-3.5">
             <div className="relative">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white shadow-inner">
-                <AIAssistantIcon className="w-7 h-7 text-white" />
+              <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white shadow-inner">
+                <AIAssistantIcon className="w-6 h-6 text-white" />
               </div>
-              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 border-2 border-[#be111a] animate-pulse"></span>
+              <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#be111a] animate-pulse"></span>
             </div>
 
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg sm:text-xl font-extrabold tracking-tight">
+                <h2 className="text-base sm:text-lg font-extrabold tracking-tight">
                   TRỢ LÝ AI MỘT CỬA
                 </h2>
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full shadow-xs">
@@ -375,6 +384,25 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Maximize / Restore Button */}
+            <button
+              onClick={() => setIsMaximized(prev => !prev)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs transition-colors cursor-pointer shadow-xs"
+              title={isMaximized ? 'Thu nhỏ cửa sổ' : 'Phóng to toàn màn hình để dễ đọc'}
+            >
+              {isMaximized ? (
+                <>
+                  <Minimize2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Thu nhỏ</span>
+                </>
+              ) : (
+                <>
+                  <Maximize2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Phóng to</span>
+                </>
+              )}
+            </button>
+
             {/* Audio Toggle Button */}
             <button
               onClick={() => {
@@ -385,7 +413,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
                   speakAI(currentResult.spokenResponse);
                 }
               }}
-              className={`p-2.5 rounded-xl border transition-all ${
+              className={`p-2 rounded-xl border transition-all cursor-pointer ${
                 isSpeakingState 
                   ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-md animate-pulse' 
                   : 'bg-white/10 hover:bg-white/20 text-white border-white/20'
@@ -402,7 +430,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
                 stopSpeaking();
                 onClose();
               }}
-              className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors"
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors cursor-pointer"
               aria-label="Đóng trợ lý AI"
             >
               <X className="w-5 h-5" />

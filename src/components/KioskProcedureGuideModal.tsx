@@ -5,19 +5,13 @@ import {
   CreditCard, 
   FileText, 
   ListOrdered, 
-  MapPin, 
   User, 
-  Phone, 
   Volume2, 
   VolumeX, 
-  Printer, 
-  ExternalLink, 
-  ChevronRight, 
-  CheckCircle2, 
-  AlertCircle,
   Sparkles,
-  Layers,
-  ArrowRight
+  ArrowRight,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { Counter, Officer, PublicService, Ward } from '../types';
 import { useApp } from '../context/AppContext';
@@ -41,8 +35,9 @@ export const KioskProcedureGuideModal: React.FC<KioskProcedureGuideModalProps> =
   ward,
   onOpenFullDetail
 }) => {
-  const { readText, stopAudio, isSpeaking } = useApp();
+  const { readText, stopAudio, isSpeaking, accessibility, setTextScale } = useApp();
   const [selectedServiceId, setSelectedServiceId] = useState<string>('');
+  const [isMaximized, setIsMaximized] = useState<boolean>(false);
 
   // Only set initial selectedServiceId when modal opens or counter changes
   useEffect(() => {
@@ -63,6 +58,23 @@ export const KioskProcedureGuideModal: React.FC<KioskProcedureGuideModalProps> =
       setSelectedServiceId('');
     }
   }, [counter?.id, isOpen]);
+
+  // Support Escape key to close or exit maximize
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isMaximized) {
+          setIsMaximized(false);
+        } else {
+          stopAudio();
+          onClose();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isMaximized, onClose, stopAudio]);
 
   if (!isOpen || !counter) return null;
 
@@ -89,7 +101,9 @@ export const KioskProcedureGuideModal: React.FC<KioskProcedureGuideModalProps> =
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-md overflow-y-auto"
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-md transition-all ${
+        isMaximized ? 'p-0' : 'p-2 sm:p-4 overflow-y-auto'
+      }`}
       onClick={e => {
         e.stopPropagation();
         stopAudio();
@@ -97,56 +111,111 @@ export const KioskProcedureGuideModal: React.FC<KioskProcedureGuideModalProps> =
       }}
     >
       <div 
-        className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border-2 border-red-200 overflow-hidden my-auto max-h-[92vh] flex flex-col animate-in fade-in zoom-in-95 duration-200"
+        className={`relative bg-white shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200 transition-all ${
+          isMaximized
+            ? 'w-screen h-screen max-w-none max-h-none rounded-none border-0'
+            : 'w-[96vw] max-w-6xl h-[94vh] max-h-[94vh] rounded-2xl sm:rounded-3xl border-2 border-red-200 my-auto'
+        }`}
         onClick={e => e.stopPropagation()}
       >
-        {/* Top Header: Counter Code, Name & Officer */}
-        <div className="bg-gradient-to-r from-[#9b0e15] via-[#be111a] to-[#9b0e15] text-white p-4 sm:p-6 border-b-4 border-amber-400 shrink-0">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-amber-400 text-[#9b0e15] font-black text-base flex flex-col items-center justify-center shadow-md ring-2 ring-white/50 shrink-0 leading-none">
-                <span className="text-[10px] uppercase font-bold tracking-tighter">Bàn</span>
-                <span className="text-xl font-mono">{counter.positionNumber}</span>
+        {/* Top Header: Compact Counter Code, Name, Officer & Expand/Close Actions */}
+        <div className="bg-gradient-to-r from-[#9b0e15] via-[#be111a] to-[#9b0e15] text-white px-4 sm:px-6 py-3 sm:py-3.5 border-b-4 border-amber-400 shrink-0">
+          <div className="flex items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-11 h-11 rounded-xl bg-amber-400 text-[#9b0e15] font-black flex flex-col items-center justify-center shadow-md ring-2 ring-white/50 shrink-0 leading-none">
+                <span className="text-[9px] uppercase font-bold tracking-tighter">Bàn</span>
+                <span className="text-lg font-mono">{counter.positionNumber}</span>
               </div>
 
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-amber-200 font-extrabold text-xs uppercase tracking-wide">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5">
+                  <span className="px-2 py-0.5 rounded-full bg-white/20 text-amber-200 font-extrabold text-[11px] uppercase tracking-wide">
                     {counter.code}
                   </span>
                   <span className="text-xs text-white/90 font-medium">
                     {ward.name} · Bộ phận một cửa
                   </span>
+                  <span className="text-xs text-amber-200 font-bold flex items-center gap-1">
+                    <User className="w-3.5 h-3.5" />
+                    <span className="text-white underline underline-offset-2">{counter.officerName}</span>
+                    {officer?.phone && (
+                      <span className="text-amber-100 font-normal hidden sm:inline">· Hotline: {officer.phone}</span>
+                    )}
+                  </span>
                 </div>
-                <h2 className="text-lg sm:text-xl font-black text-white mt-0.5 tracking-tight">
+                <h2 className="text-base sm:text-lg font-black text-white mt-0.5 tracking-tight truncate">
                   {counter.name}
                 </h2>
-                <p className="text-xs text-amber-200 font-bold flex items-center gap-1.5 mt-0.5">
-                  <User className="w-3.5 h-3.5" />
-                  Cán bộ phụ trách: <span className="text-white underline underline-offset-2">{counter.officerName}</span>
-                  {officer?.phone && (
-                    <span className="text-amber-100 font-normal">· Hotline: {officer.phone}</span>
-                  )}
-                </p>
               </div>
             </div>
 
-            <button
-              onClick={() => {
-                stopAudio();
-                onClose();
-              }}
-              className="p-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer shrink-0 border border-white/20"
-              title="Đóng bảng hướng dẫn"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            {/* Quick Text Scale, Maximize/Restore & Close Buttons */}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <div className="hidden md:flex items-center bg-black/20 rounded-xl p-0.5 border border-white/15 mr-1">
+                <button
+                  onClick={() => setTextScale('normal')}
+                  className={`px-2 py-1 text-[11px] font-bold rounded-lg transition-colors cursor-pointer ${
+                    accessibility.textScale === 'normal' ? 'bg-white text-red-800' : 'text-white/80 hover:text-white'
+                  }`}
+                  title="Cỡ chữ chuẩn"
+                >
+                  A
+                </button>
+                <button
+                  onClick={() => setTextScale('large')}
+                  className={`px-2 py-1 text-xs font-extrabold rounded-lg transition-colors cursor-pointer ${
+                    accessibility.textScale === 'large' ? 'bg-white text-red-800' : 'text-white/80 hover:text-white'
+                  }`}
+                  title="Cỡ chữ lớn"
+                >
+                  A+
+                </button>
+                <button
+                  onClick={() => setTextScale('xlarge')}
+                  className={`px-2 py-1 text-sm font-black rounded-lg transition-colors cursor-pointer ${
+                    accessibility.textScale === 'xlarge' ? 'bg-white text-red-800' : 'text-white/80 hover:text-white'
+                  }`}
+                  title="Cỡ chữ rất lớn"
+                >
+                  A++
+                </button>
+              </div>
+
+              <button
+                onClick={() => setIsMaximized(prev => !prev)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs transition-colors cursor-pointer shadow-xs"
+                title={isMaximized ? 'Thu nhỏ cửa sổ' : 'Phóng to toàn màn hình để dễ đọc'}
+              >
+                {isMaximized ? (
+                  <>
+                    <Minimize2 className="w-4 h-4" />
+                    <span className="hidden sm:inline">Thu nhỏ</span>
+                  </>
+                ) : (
+                  <>
+                    <Maximize2 className="w-4 h-4" />
+                    <span className="hidden sm:inline">Phóng to</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={() => {
+                  stopAudio();
+                  onClose();
+                }}
+                className="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-white transition-colors cursor-pointer border border-white/25"
+                title="Đóng bảng hướng dẫn"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          {/* Procedure Tabs (If multiple services belong to this counter) */}
+          {/* Compact Procedure Tabs (Horizontal Wrap / Compact Pills to preserve vertical space) */}
           {services.length > 0 && (
-            <div className="mt-4 pt-3 border-t border-white/20 flex flex-wrap gap-2">
-              <span className="text-xs text-amber-200 font-bold self-center mr-1 hidden sm:inline">
+            <div className="mt-2.5 pt-2.5 border-t border-white/20 flex flex-wrap items-center gap-1.5">
+              <span className="text-[11px] text-amber-200 font-bold mr-1 hidden sm:inline">
                 Chọn thủ tục:
               </span>
               {services.map(srv => {
@@ -155,15 +224,15 @@ export const KioskProcedureGuideModal: React.FC<KioskProcedureGuideModalProps> =
                   <button
                     key={srv.id}
                     onClick={() => handleSelectService(srv.id)}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${
                       isSelected
-                        ? 'bg-amber-400 text-slate-900 ring-2 ring-white scale-102 font-black'
+                        ? 'bg-amber-400 text-slate-950 ring-2 ring-white font-black'
                         : 'bg-white/15 hover:bg-white/25 text-white'
                     }`}
                   >
                     <span>{srv.name}</span>
                     {srv.isPopular && (
-                      <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-red-600 text-white">
+                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-red-700 text-white">
                         Phổ biến
                       </span>
                     )}
@@ -175,7 +244,7 @@ export const KioskProcedureGuideModal: React.FC<KioskProcedureGuideModalProps> =
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 bg-[#f8fafc]">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1 bg-[#f8fafc]">
           
           {/* Case 1: Special Utility Counter (Quầy Hướng dẫn / Khu Tiện ích) */}
           {services.length === 0 ? (
@@ -240,61 +309,67 @@ export const KioskProcedureGuideModal: React.FC<KioskProcedureGuideModalProps> =
             </div>
           ) : currentService ? (
             /* Case 2: Standard Administrative Public Service */
-            <div className="space-y-5">
+            <div className="space-y-4">
               
-              {/* Service Title and Summary */}
-              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs">
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
-                  <span className="px-2.5 py-0.5 rounded-lg bg-red-100 text-[#be111a] font-mono text-xs font-bold">
-                    Mã TTHC: {currentService.code}
-                  </span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                    currentService.level === 'toan_trinh'
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : currentService.level === 'mot_phan'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-amber-100 text-amber-800'
-                  }`}>
-                    {currentService.level === 'toan_trinh' ? 'DVC Toàn trình (Trực tuyến)' : currentService.level === 'mot_phan' ? 'DVC Một phần' : 'Thực hiện trực tiếp tại quầy'}
-                  </span>
+              {/* Service Title, Summary & Voice Assistant */}
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                    <span className="px-2.5 py-0.5 rounded-lg bg-red-100 text-[#be111a] font-mono text-xs font-bold">
+                      Mã TTHC: {currentService.code}
+                    </span>
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                      currentService.level === 'toan_trinh'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : currentService.level === 'mot_phan'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}>
+                      {currentService.level === 'toan_trinh' ? 'DVC Toàn trình (Trực tuyến)' : currentService.level === 'mot_phan' ? 'DVC Một phần' : 'Thực hiện trực tiếp tại quầy'}
+                    </span>
+                  </div>
+
+                  <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                    {currentService.name}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+                    {currentService.summary}
+                  </p>
                 </div>
 
-                <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-                  {currentService.name}
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
-                  {currentService.summary}
-                </p>
-
                 {/* Voice Assistant Button for this procedure */}
-                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <div className="shrink-0 flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end gap-1.5">
                   <button
                     onClick={handleAudioPlayback}
-                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-bold text-xs border border-emerald-300 transition-colors cursor-pointer"
+                    className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm border transition-colors cursor-pointer shadow-xs ${
+                      isSpeaking
+                        ? 'bg-red-600 text-white border-red-700 animate-pulse'
+                        : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-300'
+                    }`}
                   >
                     {isSpeaking ? (
                       <>
-                        <VolumeX className="w-4 h-4 text-emerald-700 animate-pulse" />
+                        <VolumeX className="w-4 h-4 animate-pulse" />
                         <span>Dừng đọc giọng nói</span>
                       </>
                     ) : (
                       <>
                         <Volume2 className="w-4 h-4 text-emerald-700" />
-                        <span>Nghe đọc hướng dẫn cho người cao tuổi</span>
+                        <span>Nghe đọc hướng dẫn</span>
                       </>
                     )}
                   </button>
 
-                  <span className="text-[11px] text-slate-400 italic hidden sm:inline">
-                    Giọng đọc chậm rãi, to rõ
+                  <span className="text-[11px] text-slate-400 italic">
+                    Giọng đọc chậm rãi, to rõ cho người cao tuổi
                   </span>
                 </div>
               </div>
 
-              {/* 4 CORE INFO CARDS: THỜI GIAN, LỆ PHÍ, ĐỊA ĐIỂM, HÌNH THỨC */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {/* 2 CORE INFO CARDS: THỜI GIAN & LỆ PHÍ */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 {/* 1. Thời hạn giải quyết */}
-                <div className="p-4 rounded-2xl bg-amber-50/80 border-2 border-amber-200 flex items-start gap-3 shadow-2xs">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-50/90 border-2 border-amber-200 flex items-start gap-3 shadow-2xs">
                   <div className="p-2 rounded-xl bg-amber-500 text-white shrink-0 mt-0.5">
                     <Clock className="w-5 h-5" />
                   </div>
@@ -302,7 +377,7 @@ export const KioskProcedureGuideModal: React.FC<KioskProcedureGuideModalProps> =
                     <span className="text-[11px] uppercase tracking-wider font-extrabold text-amber-800 block">
                       Thời hạn giải quyết
                     </span>
-                    <p className="text-sm font-black text-slate-900 mt-0.5">
+                    <p className="text-sm sm:text-base font-black text-slate-900 mt-0.5">
                       {currentService.processingDuration}
                     </p>
                     <span className="text-[11px] text-amber-700 font-medium">
@@ -312,7 +387,7 @@ export const KioskProcedureGuideModal: React.FC<KioskProcedureGuideModalProps> =
                 </div>
 
                 {/* 2. Mức Lệ phí */}
-                <div className="p-4 rounded-2xl bg-emerald-50/80 border-2 border-emerald-200 flex items-start gap-3 shadow-2xs">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-50/90 border-2 border-emerald-200 flex items-start gap-3 shadow-2xs">
                   <div className="p-2 rounded-xl bg-emerald-600 text-white shrink-0 mt-0.5">
                     <CreditCard className="w-5 h-5" />
                   </div>
@@ -320,7 +395,7 @@ export const KioskProcedureGuideModal: React.FC<KioskProcedureGuideModalProps> =
                     <span className="text-[11px] uppercase tracking-wider font-extrabold text-emerald-800 block">
                       Mức phí & Lệ phí
                     </span>
-                    <p className="text-sm font-black text-slate-900 mt-0.5">
+                    <p className="text-sm sm:text-base font-black text-slate-900 mt-0.5">
                       {currentService.fee}
                     </p>
                     <span className="text-[11px] text-emerald-700 font-medium">
@@ -330,99 +405,102 @@ export const KioskProcedureGuideModal: React.FC<KioskProcedureGuideModalProps> =
                 </div>
               </div>
 
-              {/* 3. THÀNH PHẦN HỒ SƠ CẦN CHUẨN BỊ */}
-              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-[#be111a]" />
-                    Hồ sơ & Giấy tờ cần chuẩn bị ({currentService.requiredDocuments.length} loại giấy tờ)
-                  </h4>
-                  <span className="text-[11px] text-slate-500 font-semibold">
-                    Người dân cần mang theo
-                  </span>
+              {/* 3 & 4: HỒ SƠ CẦN CHUẨN BỊ & QUY TRÌNH THỰC HIỆN (2 CỘT RỘNG RÃI) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+                {/* 3. THÀNH PHẦN HỒ SƠ CẦN CHUẨN BỊ */}
+                <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3 h-full">
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-[#be111a] shrink-0" />
+                      Hồ sơ & Giấy tờ ({currentService.requiredDocuments.length} loại)
+                    </h4>
+                    <span className="text-[11px] text-slate-500 font-semibold shrink-0">
+                      Cần mang theo
+                    </span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {currentService.requiredDocuments.map((doc, idx) => (
+                      <div 
+                        key={doc.id || idx}
+                        className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-3 text-xs"
+                      >
+                        <div className="w-6 h-6 rounded-lg bg-red-100 text-[#be111a] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                          {idx + 1}
+                        </div>
+
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="font-bold text-slate-900 text-xs sm:text-sm">
+                              {doc.name}
+                            </span>
+                            {doc.isRequired && (
+                              <span className="px-1.5 py-0.2 rounded bg-red-100 text-red-800 font-bold text-[10px]">
+                                Bắt buộc
+                              </span>
+                            )}
+                            {doc.isOriginal && (
+                              <span className="px-1.5 py-0.2 rounded bg-amber-100 text-amber-900 font-semibold text-[10px]">
+                                Bản chính
+                              </span>
+                            )}
+                            {doc.isCopyOrCertified && (
+                              <span className="px-1.5 py-0.2 rounded bg-blue-100 text-blue-900 font-semibold text-[10px]">
+                                Bản sao / Photo
+                              </span>
+                            )}
+                          </div>
+
+                          {doc.note && (
+                            <p className="text-slate-600 mt-1 text-[11px] sm:text-xs leading-relaxed">
+                              💡 {doc.note}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="space-y-2.5">
-                  {currentService.requiredDocuments.map((doc, idx) => (
-                    <div 
-                      key={doc.id || idx}
-                      className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-3 text-xs"
-                    >
-                      <div className="w-6 h-6 rounded-lg bg-red-100 text-[#be111a] font-bold flex items-center justify-center shrink-0 mt-0.5">
-                        {idx + 1}
-                      </div>
+                {/* 4. QUY TRÌNH CÁC BƯỚC THỰC HIỆN */}
+                <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3 h-full">
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                      <ListOrdered className="w-4 h-4 text-[#be111a] shrink-0" />
+                      Quy trình thực hiện ({currentService.steps.length} bước)
+                    </h4>
+                    <span className="text-[11px] text-slate-500 font-semibold shrink-0">
+                      Tại một cửa
+                    </span>
+                  </div>
 
-                      <div className="flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-bold text-slate-900 text-xs sm:text-sm">
-                            {doc.name}
+                  <div className="space-y-2.5">
+                    {currentService.steps.map((st) => (
+                      <div 
+                        key={st.stepNumber}
+                        className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1 relative overflow-hidden"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="px-2 py-0.5 rounded-md bg-[#be111a] text-white font-black text-xs">
+                            Bước {st.stepNumber}
                           </span>
-                          {doc.isRequired && (
-                            <span className="px-1.5 py-0.2 rounded bg-red-100 text-red-800 font-bold text-[10px]">
-                              Bắt buộc
-                            </span>
-                          )}
-                          {doc.isOriginal && (
-                            <span className="px-1.5 py-0.2 rounded bg-amber-100 text-amber-900 font-semibold text-[10px]">
-                              Bản chính
-                            </span>
-                          )}
-                          {doc.isCopyOrCertified && (
-                            <span className="px-1.5 py-0.2 rounded bg-blue-100 text-blue-900 font-semibold text-[10px]">
-                              Bản sao / Photo
+                          {st.counterNote && (
+                            <span className="text-[11px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
+                              {st.counterNote}
                             </span>
                           )}
                         </div>
 
-                        {doc.note && (
-                          <p className="text-slate-600 mt-1 text-[11px] leading-relaxed">
-                            💡 {doc.note}
-                          </p>
-                        )}
+                        <h5 className="font-bold text-slate-900 text-xs sm:text-sm pt-0.5">
+                          {st.title}
+                        </h5>
+
+                        <p className="text-[11px] sm:text-xs text-slate-600 leading-relaxed">
+                          {st.description}
+                        </p>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 4. QUY TRÌNH CÁC BƯỚC THỰC HIỆN */}
-              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                    <ListOrdered className="w-4 h-4 text-[#be111a]" />
-                    Quy trình thực hiện ({currentService.steps.length} bước tại một cửa)
-                  </h4>
-                  <span className="text-[11px] text-slate-500 font-semibold">
-                    Đến đúng ô tiếp nhận
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {currentService.steps.map((st) => (
-                    <div 
-                      key={st.stepNumber}
-                      className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 relative overflow-hidden"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="px-2 py-0.5 rounded-md bg-[#be111a] text-white font-black text-xs">
-                          Bước {st.stepNumber}
-                        </span>
-                        {st.counterNote && (
-                          <span className="text-[11px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
-                            {st.counterNote}
-                          </span>
-                        )}
-                      </div>
-
-                      <h5 className="font-bold text-slate-900 text-xs sm:text-sm pt-0.5">
-                        {st.title}
-                      </h5>
-
-                      <p className="text-[11px] text-slate-600 leading-relaxed">
-                        {st.description}
-                      </p>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -431,19 +509,27 @@ export const KioskProcedureGuideModal: React.FC<KioskProcedureGuideModalProps> =
 
         </div>
 
-        {/* Modal Bottom Actions */}
-        <div className="p-4 sm:p-5 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+        {/* Modal Bottom Actions (Compact & Clear) */}
+        <div className="px-4 sm:px-6 py-3 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2.5 shrink-0">
           <div className="text-xs text-slate-500 text-center sm:text-left">
             <span className="font-bold text-slate-700">UBND {ward.name}</span> · Bộ phận một cửa phục vụ công dân
           </div>
 
           <div className="flex items-center gap-2.5 w-full sm:w-auto">
             <button
+              onClick={() => setIsMaximized(prev => !prev)}
+              className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs transition-colors cursor-pointer"
+            >
+              {isMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              <span>{isMaximized ? 'Thu nhỏ cửa sổ' : 'Phóng to toàn màn hình'}</span>
+            </button>
+
+            <button
               onClick={() => {
                 stopAudio();
                 onClose();
               }}
-              className="flex-1 sm:flex-initial px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm transition-colors cursor-pointer"
+              className="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm transition-colors cursor-pointer"
             >
               Đóng lại
             </button>
@@ -451,7 +537,7 @@ export const KioskProcedureGuideModal: React.FC<KioskProcedureGuideModalProps> =
             {currentService && (
               <button
                 onClick={() => handleProceedToDetail(currentService)}
-                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-[#9b0e15] to-[#be111a] hover:from-[#7f0b11] hover:to-[#9b0e15] text-white font-black text-xs sm:text-sm shadow-md hover:shadow-lg transition-all border border-amber-300 cursor-pointer"
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#9b0e15] to-[#be111a] hover:from-[#7f0b11] hover:to-[#9b0e15] text-white font-black text-xs sm:text-sm shadow-md hover:shadow-lg transition-all border border-amber-300 cursor-pointer"
               >
                 <span>Xem chi tiết, In phiếu & Nộp online</span>
                 <ArrowRight className="w-4 h-4 text-amber-300" />
