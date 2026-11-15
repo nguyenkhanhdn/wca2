@@ -356,7 +356,7 @@ export const INITIAL_SERVICES: PublicService[] = [
       }
     ],
     legalBasis: ['Luật Hộ tịch năm 2014', 'Nghị định 123/2015/NĐ-CP', 'Thông tư 04/2020/TT-BTP'],
-    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000128'
+    nationalPortalUrl: 'https://dichvucong.gov.vn/tim-kiem-thu-tuc-hanh-chinh?formalityId=019d2bfd-3fe0-70ac-b9d6-5e9e20d6eef7&province=019bad30-cd8b-72c7-aa01-1003dfaa3fd4&ministry=&ward=019bad30-cd8c-72bb-9479-4b30ac99c682&searchType=PROVINCE&commune=WARD&provinceCode=48&wardCode=20263'
   },
 
   {
@@ -420,7 +420,7 @@ export const INITIAL_SERVICES: PublicService[] = [
       }
     ],
     legalBasis: ['Luật Hộ tịch năm 2014', 'Luật Hôn nhân và Gia đình năm 2014'],
-    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000129'
+    nationalPortalUrl: 'https://dichvucong.gov.vn/dvc-chi-tiet-nhom-su-kien-cho-cong-dan/019b6e14-5b92-776a-ab2b-af9f0c261d97'
   },
 
   {
@@ -478,7 +478,7 @@ export const INITIAL_SERVICES: PublicService[] = [
       }
     ],
     legalBasis: ['Luật Hộ tịch năm 2014'],
-    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000130'
+    nationalPortalUrl: 'https://dichvucong.gov.vn/dvc-chi-tiet-nhom-su-kien-cho-cong-dan/019b6e29-6dd5-7456-8d3e-a91feaae9f04'
   },
 
   // 2. Tư pháp - Chứng thực (Ô số 2)
@@ -647,7 +647,7 @@ export const INITIAL_SERVICES: PublicService[] = [
       }
     ],
     legalBasis: ['Luật Hộ tịch năm 2014', 'Thông tư 04/2020/TT-BTP'],
-    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000137'
+    nationalPortalUrl: 'https://dichvucong.gov.vn/dvc-chi-tiet-nhom-su-kien-cho-cong-dan/019b6e14-5b92-776a-ab2b-af9f0c261d97'
   },
 
   // 3. Dân tộc - Tôn giáo - Nội vụ (Ô số 3)
@@ -853,17 +853,17 @@ export const INITIAL_SERVICES: PublicService[] = [
     category: 'van_hoa_giao_duc_y_te',
     level: 'mot_phan',
     counterId: 'counter-5',
-    summary: 'Chế độ trợ cấp tiền mặt hàng tháng và cấp thẻ Bảo hiểm Y tế miễn phí cho người cao tuổi từ đủ 75-80 tuổi (hộ nghèo/cận nghèo) hoặc từ đủ 80 tuổi trở lên.',
+    summary: 'Chế độ trợ cấp tiền mặt hàng tháng và cấp thẻ Bảo hiểm Y tế miễn phí cho người cao tuổi từ đủ 70 tuổi đến dưới 75 tuổi (hộ nghèo/cận nghèo), từ đủ 75 tuổi trở lên không có lương hưu hoặc từ đủ 80 tuổi trở lên.',
     processingDuration: '15 ngày làm việc',
     fee: 'Miễn phí 100%',
-    audioScript: 'Kính chúc Bác luôn dồi dào sức khỏe! Bác hoặc con cháu trong nhà muốn làm hồ sơ hưởng trợ cấp người cao tuổi, Bác chỉ cần mang theo Căn cước công dân đến nộp tại Ô số 5, gặp đồng chí Hà Vương. Phường sẽ hỗ trợ Bác điền mẫu đơn tờ khai thông tin và cấp thẻ Bảo hiểm Y tế miễn phí đi kèm.',
-    searchKeywords: ['người cao tuổi', 'trợ cấp người già', 'trợ cấp xã hội', '80 tuổi', 'thẻ bhyt miễn phí', 'bảo trợ xã hội'],
+    audioScript: 'Kính chúc Bác luôn dồi dào sức khỏe! Bác hoặc con cháu trong nhà muốn làm hồ sơ hỗ trợ cho người cao tuổi từ đủ 70 tuổi trở lên hưởng trợ cấp xã hội, Bác chỉ cần mang theo Căn cước công dân đến nộp tại Ô số 5, gặp đồng chí Hà Vương. Phường sẽ hỗ trợ Bác điền mẫu đơn tờ khai thông tin và cấp thẻ Bảo hiểm Y tế miễn phí đi kèm.',
+    searchKeywords: ['người cao tuổi', '70 tuổi', '75 tuổi', 'trợ cấp người già', 'trợ cấp xã hội', 'trợ cấp hưu trí xã hội', '80 tuổi', 'thẻ bhyt miễn phí', 'bảo trợ xã hội'],
     isPopular: true,
     requiredDocuments: [
       {
         id: 'doc-nct-1',
         name: 'Tờ khai thông tin người cao tuổi đề nghị hưởng trợ cấp xã hội',
-        note: 'Theo mẫu 1a (Nghị định 20/2021/NĐ-CP), cán bộ Ô số 5 sẽ hỗ trợ điền trực tiếp cho Bác.',
+        note: 'Theo mẫu quy định, cán bộ Ô số 5 sẽ hỗ trợ điền trực tiếp cho Bác.',
         isRequired: true,
         isOriginal: true,
         isCopyOrCertified: false
@@ -878,8 +878,8 @@ export const INITIAL_SERVICES: PublicService[] = [
       },
       {
         id: 'doc-nct-3',
-        name: 'Sổ hộ nghèo hoặc cận nghèo (nếu từ đủ 75 đến dưới 80 tuổi)',
-        note: 'Đối với người từ đủ 80 tuổi trở lên không có lương hưu thì không cần sổ hộ nghèo.',
+        name: 'Sổ hộ nghèo hoặc cận nghèo (nếu từ đủ 70 đến dưới 75 tuổi)',
+        note: 'Đối với người từ đủ 75 tuổi trở lên không có lương hưu hoặc trợ cấp BHXH hàng tháng thì không cần sổ hộ nghèo.',
         isRequired: false,
         isOriginal: true,
         isCopyOrCertified: true
@@ -905,8 +905,72 @@ export const INITIAL_SERVICES: PublicService[] = [
         counterNote: 'Ô số 5 & Điểm bưu điện'
       }
     ],
-    legalBasis: ['Nghị định 20/2021/NĐ-CP của Chính phủ'],
-    nationalPortalUrl: 'https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=1.000412'
+    legalBasis: ['Nghị định 20/2021/NĐ-CP của Chính phủ', 'Nghị định 176/2025/NĐ-CP về trợ cấp hưu trí xã hội'],
+    nationalPortalUrl: 'https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d7c4f-0f4f-756f-a7db-e8f96edb8171'
+  },
+
+  {
+    id: 'srv-huu-tri',
+    wardId: 'ward-sontra',
+    code: '1.000420',
+    name: 'Giải quyết Chế độ Hưu trí và Trợ cấp Hưu trí Xã hội',
+    category: 'van_hoa_giao_duc_y_te',
+    level: 'toan_trinh',
+    counterId: 'counter-5',
+    summary: 'Hướng dẫn thực hiện nhóm thủ tục Hưu trí trên Cổng Dịch vụ công Quốc gia: giải quyết hưởng lương hưu, trợ cấp hưu trí hàng tháng, chuyển nơi hưởng lương hưu và cấp thẻ BHYT.',
+    processingDuration: '10 - 15 ngày làm việc (hỗ trợ nộp trực tuyến ngay tại quầy)',
+    fee: 'Miễn phí',
+    audioScript: 'Kính chào Bác! Để làm thủ tục giải quyết chế độ hưu trí, chuyển nơi nhận lương hưu hoặc trợ cấp hưu trí, Bác mang theo Căn cước công dân và sổ bảo hiểm xã hội hoặc quyết định nghỉ hưu đến Ô số 5 gặp đồng chí Hà Vương để được hướng dẫn nộp trực tuyến qua Cổng Dịch vụ công Quốc gia.',
+    searchKeywords: ['hưu trí', 'lương hưu', 'nghỉ hưu', 'trợ cấp hưu trí', 'bảo hiểm xã hội', 'chế độ hưu trí', 'chuyển nơi nhận lương hưu'],
+    isPopular: true,
+    requiredDocuments: [
+      {
+        id: 'doc-ht-1',
+        name: 'Tờ khai hoặc văn bản đề nghị giải quyết chế độ hưu trí',
+        note: 'Thực hiện trực tuyến trên Cổng DVC Quốc gia hoặc cán bộ Ô số 5 hỗ trợ kê khai.',
+        isRequired: true,
+        isOriginal: true,
+        isCopyOrCertified: false
+      },
+      {
+        id: 'doc-ht-2',
+        name: 'Thẻ Căn cước công dân gắn chip & tài khoản VNeID mức 2',
+        note: 'Dùng để đăng nhập, đối chiếu thông tin trên Cổng Dịch vụ công Quốc gia.',
+        isRequired: true,
+        isOriginal: true,
+        isCopyOrCertified: false
+      },
+      {
+        id: 'doc-ht-3',
+        name: 'Sổ Bảo hiểm xã hội hoặc Quyết định nghỉ việc hưởng chế độ hưu trí (nếu có)',
+        note: 'Bản chính hoặc bản điện tử trên ứng dụng VssID.',
+        isRequired: false,
+        isOriginal: true,
+        isCopyOrCertified: true
+      }
+    ],
+    steps: [
+      {
+        stepNumber: 1,
+        title: 'Tra cứu và chuẩn bị hồ sơ tại Ô số 5',
+        description: 'Bác đến Ô số 5 gặp Đ/c Hà Vương để kiểm tra điều kiện và giấy tờ liên quan đến chế độ hưu trí.',
+        counterNote: 'Ô số 5 (Đ/c Hà Vương)'
+      },
+      {
+        stepNumber: 2,
+        title: 'Nộp hồ sơ nhóm sự kiện Hưu trí trên Cổng DVC Quốc gia',
+        description: 'Cán bộ hỗ trợ Bác đăng nhập VNeID và gửi hồ sơ trực tuyến đến cơ quan Bảo hiểm xã hội.',
+        counterNote: 'Ô số 5 & Ô số 6 (Hỗ trợ trực tuyến)'
+      },
+      {
+        stepNumber: 3,
+        title: 'Nhận kết quả giải quyết chế độ và thẻ BHYT',
+        description: 'Nhận Quyết định hưởng lương hưu / trợ cấp hưu trí qua bưu điện, tài khoản ngân hàng hoặc bản điện tử.',
+        counterNote: 'Cổng DVC Quốc gia / Bưu điện'
+      }
+    ],
+    legalBasis: ['Luật Bảo hiểm xã hội năm 2024', 'Nghị định 176/2025/NĐ-CP'],
+    nationalPortalUrl: 'https://dichvucong.gov.vn/dvc-chi-tiet-nhom-su-kien-cho-cong-dan/019b6e27-7642-76e5-8f29-649db67dd5e4'
   },
 
   {

@@ -211,6 +211,7 @@ def _normalize_service(d: Dict[str, Any]) -> Dict[str, Any]:
     d['wardId'] = d.get('ward_id')
     d['processingDuration'] = d.get('processing_duration')
     d['audioScript'] = d.get('audio_script')
+    d['nationalPortalUrl'] = d.get('national_portal_url')
     d['isPopular'] = bool(d.get('is_popular', 0))
     d['requiredDocuments'] = json.loads(d.get('required_documents_json') or '[]')
     d['steps'] = json.loads(d.get('steps_json') or '[]')

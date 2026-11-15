@@ -97,6 +97,23 @@ const STORAGE_KEYS = {
   ACCESSIBILITY: 'dvc_sontra_a11y_v3'
 };
 
+const INITIAL_PORTAL_URLS_BY_ID: Record<string, string> = INITIAL_SERVICES.reduce((acc, srv) => {
+  if (srv.nationalPortalUrl) {
+    acc[srv.id] = srv.nationalPortalUrl;
+  }
+  return acc;
+}, {} as Record<string, string>);
+
+const isLegacyGeneratedPortalUrl = (url?: string): boolean => {
+  if (!url || typeof url !== 'string') return true;
+  const trimmed = url.trim();
+  if (!trimmed || trimmed === 'https://dichvucong.gov.vn/') return true;
+  return (
+    trimmed.includes('dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc=') ||
+    trimmed.includes('dvc-chi-tiet-thu-tuc-hanh-chinh.html')
+  );
+};
+
 export const sanitizeServiceNationalPortalUrl = (service: Partial<PublicService>): string => {
   let url = service.nationalPortalUrl;
   if (url && typeof url === 'string') {
@@ -105,6 +122,10 @@ export const sanitizeServiceNationalPortalUrl = (service: Partial<PublicService>
     if (url.includes('dvc-chi-tiet-thu-tuc-hanh-chinh.html')) {
       url = url.replace('dvc-chi-tiet-thu-tuc-hanh-chinh.html', 'dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html');
     }
+  }
+  // If empty/legacy for a built-in service that now has a direct DVC Quốc gia URL, prefer the official updated URL
+  if (service.id && INITIAL_PORTAL_URLS_BY_ID[service.id] && isLegacyGeneratedPortalUrl(url)) {
+    return INITIAL_PORTAL_URLS_BY_ID[service.id];
   }
   // If empty or default root and service has a procedure code, link directly to procedure details
   if (!url || url === '' || url === 'https://dichvucong.gov.vn/') {
@@ -166,10 +187,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const saved = localStorage.getItem(STORAGE_KEYS.SERVICES);
       if (saved) {
         const parsed: PublicService[] = JSON.parse(saved);
-        return parsed.map(s => ({
-          ...s,
-          nationalPortalUrl: sanitizeServiceNationalPortalUrl(s)
-        }));
+        const migrated = parsed.map(s => {
+          const defaultSrv = INITIAL_SERVICES.find(d => d.id === s.id);
+          if (s.id === 'srv-tro-cap-nguoi-cao-tuoi' && defaultSrv && s.summary?.includes('75-80 tuổi')) {
+            return {
+              ...s,
+              summary: defaultSrv.summary,
+              audioScript: defaultSrv.audioScript,
+              searchKeywords: defaultSrv.searchKeywords,
+              legalBasis: defaultSrv.legalBasis,
+              nationalPortalUrl: sanitizeServiceNationalPortalUrl(s)
+            };
+          }
+          return {
+            ...s,
+            nationalPortalUrl: sanitizeServiceNationalPortalUrl(s)
+          };
+        });
+        // Merge in any newly added default services (e.g. srv-huu-tri) if not yet saved
+        const existingIds = new Set(migrated.map(s => s.id));
+        const missingDefaults = INITIAL_SERVICES.filter(d => !existingIds.has(d.id));
+        return [...migrated, ...missingDefaults];
       }
       return INITIAL_SERVICES;
     } catch {

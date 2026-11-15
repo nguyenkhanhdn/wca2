@@ -172,6 +172,30 @@
     </div>
     {% endif %}
 
+    <!-- Liên kết Cổng Dịch vụ công Quốc gia -->
+    {% if service.nationalPortalUrl %}
+    <div class="no-print p-5 bg-gradient-to-br from-red-50 via-white to-amber-50/70 rounded-2xl border-2 border-[#be111a]/30 space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-[#be111a] text-xs font-bold border border-red-200">
+          Cổng Dịch vụ công Quốc gia · dichvucong.gov.vn
+        </span>
+        <span class="text-xs font-bold text-slate-500 font-mono">Mã TTHC: {{ service.code }}</span>
+      </div>
+      <div>
+        <h4 class="text-base font-black text-slate-900">Nộp hồ sơ trực tuyến qua Cổng Dịch vụ công Quốc gia</h4>
+        <p class="text-xs text-slate-600 mt-0.5">Khi máy Kiosk hoặc điện thoại có kết nối Internet, công dân có thể mở trực tiếp liên kết bên dưới để nộp hồ sơ trực tuyến:</p>
+      </div>
+      <div class="p-3 bg-white rounded-xl border border-red-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+        <a href="{{ service.nationalPortalUrl }}" target="_blank" rel="noopener noreferrer" class="font-mono text-red-700 hover:underline break-all">
+          {{ service.nationalPortalUrl }}
+        </a>
+        <a href="{{ service.nationalPortalUrl }}" target="_blank" rel="noopener noreferrer" class="shrink-0 px-3.5 py-2 rounded-xl bg-[#be111a] hover:bg-[#9b0e15] text-white font-black text-xs transition-colors">
+          Mở trên DVC Quốc gia ↗
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
   </div>
 
   <!-- Các thủ tục liên quan cùng ô tiếp nhận -->
