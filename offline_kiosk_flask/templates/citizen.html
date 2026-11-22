@@ -50,6 +50,23 @@
       </button>
     </form>
 
+    <!-- Gợi ý hỏi đáp 1 chạm dành cho người cao tuổi -->
+    <div class="flex flex-wrap items-center gap-2 pt-1">
+      <span class="text-xs font-extrabold text-slate-600 mr-1">Hỏi nhanh 1 chạm:</span>
+      <button type="button" data-ai-question="Làm giấy khai sinh cho cháu cần giấy tờ và mẫu đơn gì?" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-xs font-bold text-amber-950 cursor-pointer transition-colors">
+        Làm khai sinh cần mẫu đơn gì?
+      </button>
+      <button type="button" data-ai-question="Thủ tục trợ cấp hàng tháng cho người cao tuổi 70 đến 80 tuổi" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-xs font-bold text-amber-950 cursor-pointer transition-colors">
+        Trợ cấp người cao tuổi 70–80 tuổi
+      </button>
+      <button type="button" data-ai-question="Chứng thực bản sao căn cước công dân hết bao nhiêu tiền?" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-xs font-bold text-amber-950 cursor-pointer transition-colors">
+        Chứng thực CCCD hết bao nhiêu?
+      </button>
+      <button type="button" data-ai-question="Làm thẻ Căn cước công dân hoặc VNeID ở đâu?" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-xs font-bold text-amber-950 cursor-pointer transition-colors">
+        Làm Căn cước / VNeID ở đâu?
+      </button>
+    </div>
+
     <!-- Các thẻ lọc theo lĩnh vực -->
     <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">
       <span class="text-xs font-bold text-slate-500 mr-1">Lĩnh vực:</span>
@@ -154,7 +171,12 @@
         <p class="text-xs text-slate-500 max-w-md mx-auto">
           Không có kết quả cho từ khóa "{{ search_query }}". Vui lòng kiểm tra lại từ khóa hoặc chạm vào nút Trợ lý AI để được hướng dẫn bằng giọng nói.
         </p>
-        <div class="pt-2">
+        <div class="pt-2 flex flex-wrap items-center justify-center gap-3">
+          {% if search_query %}
+          <button type="button" data-ai-question="{{ search_query }}" class="px-5 py-2.5 bg-[#be111a] hover:bg-red-700 text-white text-xs font-bold rounded-xl cursor-pointer shadow-xs">
+            Hỏi Trợ lý AI câu hỏi này ngay
+          </button>
+          {% endif %}
           <a href="/citizen" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl">
             Xem lại tất cả thủ tục
           </a>

@@ -118,16 +118,26 @@ def admin_panel():
 
 @app.route('/api/ai-assistant', methods=['POST'])
 def api_ai_assistant():
-    """API nhận diện giọng nói và câu hỏi của công dân"""
+    """API nhận diện giọng nói và câu hỏi của công dân (hỗ trợ cả offline SQLite & ngữ cảnh hỏi tiếp)"""
     data = request.get_json() or {}
-    query = data.get('query', '').strip()
+    query = (data.get('query') or data.get('question') or '').strip()
+    active_service_id = (data.get('activeServiceId') or '').strip() or None
+    history = data.get('history') if isinstance(data.get('history'), list) else []
 
     services = database.get_services('ward-sontra')
     counters = database.get_counters('ward-sontra')
     officers = database.get_officers('ward-sontra')
     ward = database.get_ward('ward-sontra')
 
-    result = analyze_citizen_speech(query, services, counters, officers, ward)
+    result = analyze_citizen_speech(
+        query,
+        services,
+        counters,
+        officers,
+        ward,
+        active_service_id=active_service_id,
+        history=history,
+    )
     return jsonify(result)
 
 @app.route('/api/services', methods=['GET'])

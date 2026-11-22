@@ -7,21 +7,16 @@ Hệ thống được thiết kế đặc thù để **chạy hoàn toàn ngoạ
 
 ### I. CÁC TÍNH NĂNG ĐẶC BIỆT CỦA PHIÊN BẢN OFFLINE
 1. **Cơ sở dữ liệu SQLite cục bộ (`dvc_sontra.db`)**:
-   - Lưu trữ toàn bộ 14 thủ tục hành chính, 8 ô bàn tiếp nhận và danh sách chuyên viên phụ trách.
+   - Lưu trữ toàn bộ 15 thủ tục hành chính (bao gồm Trợ cấp người cao tuổi 70–75 tuổi, Hưu trí xã hội, Khai sinh, Khai tử, Hôn nhân gia đình...), 8 ô bàn tiếp nhận và danh sách chuyên viên phụ trách.
    - Hỗ trợ thêm/sửa/xóa và khôi phục dữ liệu gốc ngay tại bảng quản trị `http://localhost:5000/admin`.
-2. **Giao diện chuẩn Kiosk cảm ứng & Trợ năng người cao tuổi**:
-   - Tùy chỉnh cỡ chữ 3 cấp độ (A, A+, A++) để người lớn tuổi nhìn rõ.
-   - Chế độ màu tương phản cao (High Contrast).
+2. **Màn hình khởi đầu (Landing) tối giản & Trợ năng người cao tuổi**:
+   - Ảnh minh họa sảnh Trung tâm Phục vụ Hành chính công thân thiện kèm 2 nút lớn nằm gọn trong 1 màn hình không cần cuộn (*Chạm để bắt đầu tra cứu* & *Hỏi đáp thủ tục với AI*).
+   - Tùy chỉnh cỡ chữ 3 cấp độ (A, A+, A++) ngay trên thanh đầu trang và bên trong cửa sổ Hỏi đáp; có chế độ tương phản cao và phóng to toàn màn hình.
    - In phiếu hướng dẫn thành phần hồ sơ mang về với 1 chạm.
-3. **Trợ lý Người máy Ây AI phát âm tiếng Việt chuẩn**:
-   - Tự động chuẩn hóa phát âm:
-     - `AI` đọc là **"Ây ai"** (không đọc lặp thành "Ây Ây ai").
-     - `Đ/c` đọc là **"đồng chí"**.
-     - `BHYT` đọc là **"bảo hiểm i tế"** (không đọc âm "y dài").
-     - `VNeID` đọc là **"Vi En Ai đi"**.
-     - Dấu gạch chéo lựa chọn (ví dụ: `Bệnh viện / Trạm y tế`) tự động đọc là **"Bệnh viện hoặc Trạm y tế"**.
-   - Cơ chế ngắt câu và giữ nhịp đọc âm thanh (Audio Keep-alive) chống gián đoạn giữa chừng.
-   - Đồng hồ đếm ngược tự động tạm dừng khi Người máy đang nói, chỉ đếm ngược khi kết thúc lời hướng dẫn.
+3. **Trợ lý Hỏi đáp Một cửa (Offline SQLite + Tùy chọn Gemini khi có mạng)**:
+   - Hoạt động 100% không cần Internet dựa trên SQLite và quy định pháp luật Nhà nước (trả lời rõ Ô tiếp nhận, Lệ phí & Thời hạn, Giấy tờ & Form mẫu quy định, Các bước thực hiện và Căn cứ pháp lý).
+   - Nếu máy Kiosk có kết nối mạng và cấu hình biến môi trường `GEMINI_API_KEY`, hệ thống tự động ưu tiên hỏi đáp bằng Gemini AI và tự chuyển về SQLite khi mất mạng.
+   - Tự động chuẩn hóa phát âm tiếng Việt (`AI` -> *"Ây ai"*, `Đ/c` -> *"đồng chí"*, `15 - 30` -> *"từ 15 đến 30"*, không lặp từ).
 4. **Khởi chạy Kiosk toàn màn hình cảm ứng (Kiosk Mode)**:
    - Tự động kích hoạt Microsoft Edge hoặc Google Chrome ở chế độ toàn màn hình (`--kiosk`).
 
