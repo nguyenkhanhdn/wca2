@@ -88,10 +88,12 @@ const AppContent: React.FC = () => {
 
       {/* Floating AI Assistant Robot Button for Citizens */}
       {currentScreen !== 'admin' && (
-        <AIAssistantFloatingButton 
-          onClick={() => setIsAIAssistantOpen(true)} 
-          isOpen={isAIAssistantOpen} 
-        />
+        <div className="print:hidden">
+          <AIAssistantFloatingButton 
+            onClick={() => setIsAIAssistantOpen(true)} 
+            isOpen={isAIAssistantOpen} 
+          />
+        </div>
       )}
 
       {/* Interactive AI Assistant Voice & Step Guidance Modal */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   ArrowLeft, 
   Volume2, 
@@ -10,7 +10,6 @@ import {
   CheckSquare, 
   Square, 
   MapPin, 
-  User, 
   Phone, 
   AlertCircle, 
   HelpCircle, 
@@ -21,10 +20,16 @@ import {
   ChevronRight,
   CheckCircle2,
   Copy,
-  MessageSquareText
+  MessageSquareText,
+  Eye,
+  FilePenLine,
+  ClipboardCheck,
+  ShieldAlert
 } from 'lucide-react';
 import { useApp, sanitizeServiceNationalPortalUrl } from '../context/AppContext';
+import { SAMPLE_FORMS_BY_SERVICE } from '../data/sampleForms';
 import { PrintableGuideModal } from './PrintableGuideModal';
+import { SampleFormModal } from './SampleFormModal';
 
 export const ServiceDetailScreen: React.FC = () => {
   const { 
@@ -36,7 +41,6 @@ export const ServiceDetailScreen: React.FC = () => {
     readText,
     stopAudio,
     isSpeaking,
-    activePlayingText,
     accessibility,
     setVoiceSpeed,
     openAIAssistant
@@ -44,9 +48,33 @@ export const ServiceDetailScreen: React.FC = () => {
 
   const [checkedDocs, setCheckedDocs] = useState<Record<string, boolean>>({});
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'hoso' | 'sodo' | 'faq'>('hoso');
+  const [isSampleFormModalOpen, setIsSampleFormModalOpen] = useState(false);
+  const [sampleFormInitialMode, setSampleFormInitialMode] = useState<'filled' | 'blank'>('filled');
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+
+  // Restore session checklist marks per service
+  useEffect(() => {
+    if (!selectedService?.id) {
+      setCheckedDocs({});
+      return;
+    }
+    try {
+      const saved = sessionStorage.getItem(`kiosk-checklist-${selectedService.id}`);
+      setCheckedDocs(saved ? JSON.parse(saved) : {});
+    } catch {
+      setCheckedDocs({});
+    }
+  }, [selectedService?.id]);
+
+  // Toggle body print isolation class when any print modal is open
+  useEffect(() => {
+    const isAnyModalOpen = isPrintModalOpen || isSampleFormModalOpen;
+    document.body.classList.toggle('printing-modal-only', isAnyModalOpen);
+    return () => {
+      document.body.classList.remove('printing-modal-only');
+    };
+  }, [isPrintModalOpen, isSampleFormModalOpen]);
 
   if (!selectedService) {
     return (
@@ -95,8 +123,51 @@ export const ServiceDetailScreen: React.FC = () => {
   };
 
   const toggleDocCheck = (docId: string) => {
-    setCheckedDocs(prev => ({ ...prev, [docId]: !prev[docId] }));
+    setCheckedDocs(prev => {
+      const next = { ...prev, [docId]: !prev[docId] };
+      try {
+        sessionStorage.setItem(`kiosk-checklist-${selectedService.id}`, JSON.stringify(next));
+      } catch {
+        // ignore storage errors
+      }
+      return next;
+    });
   };
+
+  const resetChecklist = () => {
+    setCheckedDocs({});
+    try {
+      sessionStorage.removeItem(`kiosk-checklist-${selectedService.id}`);
+    } catch {
+      // ignore
+    }
+  };
+
+  const sampleForm = SAMPLE_FORMS_BY_SERVICE[selectedService.id];
+
+  const openSampleForm = (mode: 'filled' | 'blank' = 'filled') => {
+    stopAudio();
+    setSampleFormInitialMode(mode);
+    setIsSampleFormModalOpen(true);
+  };
+
+  // Pre-submission readiness calculation
+  const requiredDocs = selectedService.requiredDocuments.filter(d => d.isRequired);
+  const optionalDocs = selectedService.requiredDocuments.filter(d => !d.isRequired);
+  const checkedRequiredDocs = requiredDocs.filter(d => !!checkedDocs[d.id]);
+  const missingRequiredDocs = requiredDocs.filter(d => !checkedDocs[d.id]);
+  const checkedOptionalCount = optionalDocs.filter(d => !!checkedDocs[d.id]).length;
+  const totalCheckedCount = Object.values(checkedDocs).filter(Boolean).length;
+  const totalRequired = requiredDocs.length;
+  const readinessPct = totalRequired > 0 ? Math.round((checkedRequiredDocs.length / totalRequired) * 100) : 100;
+  const isReadyToSubmit = missingRequiredDocs.length === 0;
+
+  const isDocFormItem = (docName: string, sampleFormName?: string) =>
+    Boolean(sampleFormName) || /tờ khai|mẫu|đơn đề nghị|giấy đề nghị|giấy cam kết|phiếu/i.test(docName);
+
+  const missingHasForm = missingRequiredDocs.some(d => isDocFormItem(d.name, d.sampleFormName));
+  const missingHasCCCD = missingRequiredDocs.some(d => /cccd|căn cước|định danh|tùy thân/i.test(d.name));
+  const missingHasCopy = missingRequiredDocs.some(d => !d.isOriginal || d.isCopyOrCertified || /bản sao|photo|trích lục/i.test(d.name));
 
   const handleAudioPlayback = () => {
     if (isSpeaking) {
@@ -113,8 +184,29 @@ export const ServiceDetailScreen: React.FC = () => {
     }, 150);
   };
 
+  const handleSpeakReadiness = () => {
+    if (isSpeaking) {
+      stopAudio();
+      return;
+    }
+    const targetCounterText = assignedCounter
+      ? `${assignedCounter.code}, bàn số ${assignedCounter.positionNumber}, gặp ${assignedCounter.officerName}`
+      : 'Bộ phận Một cửa';
+    if (isReadyToSubmit) {
+      readText(
+        `Chúc mừng Bác! Bác đã đánh dấu đủ ${totalRequired} loại giấy tờ bắt buộc cho thủ tục ${selectedService.name}. Bác vui lòng đến ${targetCounterText} để nộp hồ sơ nhé.`
+      );
+    } else {
+      const missingList = missingRequiredDocs.map(d => d.name).join(', ');
+      readText(
+        `Bác đã chuẩn bị ${checkedRequiredDocs.length} trên ${totalRequired} giấy tờ bắt buộc. Hiện còn thiếu ${missingRequiredDocs.length} mục là: ${missingList}. Nếu thiếu đơn mẫu hoặc bản photo, Bác ghé Quầy Hướng dẫn ở cửa vào để được hỗ trợ miễn phí nhé.`
+      );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f4f6f9] pb-20">
+      <div className={isPrintModalOpen || isSampleFormModalOpen ? 'print:hidden' : ''}>
       
       {/* Top Navigation & Breadcrumbs */}
       <div className="bg-white border-b border-slate-200 sticky top-18 z-30 shadow-xs">
@@ -143,16 +235,26 @@ export const ServiceDetailScreen: React.FC = () => {
               <ExternalLink className="w-4 h-4 text-amber-300" />
               <span>Cổng DVC Quốc gia (dichvucong.gov.vn)</span>
             </a>
+            {sampleForm && (
+              <button
+                type="button"
+                onClick={() => openSampleForm('filled')}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xs sm:text-sm shadow-xs border border-amber-500/40 transition-colors cursor-pointer"
+              >
+                <Eye className="w-4 h-4" />
+                <span>Xem mẫu tờ khai</span>
+              </button>
+            )}
             <button
               onClick={() => setIsPrintModalOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm shadow-xs transition-colors"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm shadow-xs transition-colors cursor-pointer"
             >
               <Printer className="w-4 h-4 text-slate-600" />
               <span>In phiếu</span>
             </button>
             <button
               onClick={() => setCurrentScreen('mindmap_view')}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm transition-colors"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm transition-colors cursor-pointer"
             >
               <Layers className="w-4 h-4 text-slate-600" />
               <span className="hidden sm:inline">Toàn cảnh sơ đồ</span>
@@ -308,27 +410,79 @@ export const ServiceDetailScreen: React.FC = () => {
           {/* Left Column: Dossier Checklist & Steps (7 cols) */}
           <div className="lg:col-span-7 space-y-6">
             
-            {/* Required Documents Checklist */}
+            {/* Required Documents Checklist & Pre-Submission Self-Check */}
             <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-sm">
-              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-red-100 text-red-700 flex items-center justify-center font-bold">
-                    <FileText className="w-4 h-4" />
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-red-100 text-red-700 flex items-center justify-center font-bold shrink-0">
+                    <ClipboardCheck className="w-5 h-5" />
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-slate-900 tracking-tight">
-                      Thành phần hồ sơ cần chuẩn bị
+                      Thành phần hồ sơ &amp; Tự kiểm tra trước khi vào quầy
                     </h2>
                     <p className="text-xs text-slate-500">
-                      Bác có thể chạm vào ô vuông để tích dấu những giấy tờ mình đã có
+                      Chạm vào từng ô vuông để đánh dấu giấy tờ Bác đã mang theo
                     </p>
                   </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {sampleForm && (
+                    <button
+                      type="button"
+                      onClick={() => openSampleForm('filled')}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-xs border border-amber-300 transition-colors cursor-pointer"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Xem mẫu điền sẵn</span>
+                    </button>
+                  )}
+                  {totalCheckedCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={resetChecklist}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Đặt lại đánh dấu</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Pre-Check Progress Meter */}
+              <div className="mb-4 p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold mb-2">
+                  <span className="text-slate-800">
+                    Tiến độ chuẩn bị giấy tờ bắt buộc:{' '}
+                    <strong className={isReadyToSubmit ? 'text-emerald-700' : 'text-red-700'}>
+                      {checkedRequiredDocs.length}/{totalRequired} loại đã sẵn sàng
+                    </strong>
+                    {optionalDocs.length > 0 && checkedOptionalCount > 0 && (
+                      <span className="text-slate-500 font-medium ml-1.5">
+                        (+{checkedOptionalCount} giấy tờ tùy trường hợp)
+                      </span>
+                    )}
+                  </span>
+                  <span className={`font-mono ${isReadyToSubmit ? 'text-emerald-700' : 'text-amber-700'}`}>
+                    {readinessPct}%
+                  </span>
+                </div>
+                <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${
+                      isReadyToSubmit ? 'bg-emerald-600' : 'bg-amber-500'
+                    }`}
+                    style={{ width: `${readinessPct}%` }}
+                  />
                 </div>
               </div>
 
               <div className="space-y-3">
-                {selectedService.requiredDocuments.map((doc, idx) => {
+                {selectedService.requiredDocuments.map((doc) => {
                   const isChecked = !!checkedDocs[doc.id];
+                  const showSampleBtn = sampleForm && isDocFormItem(doc.name, doc.sampleFormName);
 
                   return (
                     <div
@@ -342,7 +496,8 @@ export const ServiceDetailScreen: React.FC = () => {
                     >
                       <button
                         type="button"
-                        className="mt-0.5 text-slate-400 focus:outline-hidden"
+                        aria-label={`Đánh dấu ${doc.name}`}
+                        className="mt-0.5 text-slate-400 focus:outline-hidden shrink-0"
                       >
                         {isChecked ? (
                           <CheckSquare className="w-5 h-5 text-emerald-600" />
@@ -351,9 +506,9 @@ export const ServiceDetailScreen: React.FC = () => {
                         )}
                       </button>
 
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className={`text-sm font-bold ${isChecked ? 'text-emerald-950 line-through opacity-70' : 'text-slate-900'}`}>
+                          <span className={`text-sm font-bold ${isChecked ? 'text-emerald-950 line-through opacity-75' : 'text-slate-900'}`}>
                             {doc.name}
                           </span>
                           {doc.isRequired ? (
@@ -373,14 +528,39 @@ export const ServiceDetailScreen: React.FC = () => {
                           </p>
                         )}
 
-                        <div className="flex flex-wrap items-center gap-2 mt-2 text-[11px] font-semibold text-slate-500">
-                          <span className="px-2 py-0.5 rounded bg-white border border-slate-200">
-                            {doc.isOriginal ? 'Mang Bản chính' : 'Bản photo'}
-                          </span>
-                          {doc.isCopyOrCertified && (
+                        <div className="flex flex-wrap items-center justify-between gap-2 mt-2.5">
+                          <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-slate-500">
                             <span className="px-2 py-0.5 rounded bg-white border border-slate-200">
-                              Bản sao chứng thực
+                              {doc.isOriginal ? 'Mang Bản chính' : 'Bản photo'}
                             </span>
+                            {doc.isCopyOrCertified && (
+                              <span className="px-2 py-0.5 rounded bg-white border border-slate-200">
+                                Bản sao chứng thực
+                              </span>
+                            )}
+                          </div>
+
+                          {showSampleBtn && (
+                            <div className="flex flex-wrap items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                onClick={() => openSampleForm('filled')}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-[11px] border border-amber-300 transition-colors cursor-pointer"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>Xem mẫu điền sẵn</span>
+                              </button>
+                              {sampleForm.hasBlankPrintableForm && (
+                                <button
+                                  type="button"
+                                  onClick={() => openSampleForm('blank')}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 font-bold text-[11px] border border-slate-300 transition-colors cursor-pointer"
+                                >
+                                  <FilePenLine className="w-3.5 h-3.5" />
+                                  <span>Mẫu trắng để in</span>
+                                </button>
+                              )}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -389,13 +569,117 @@ export const ServiceDetailScreen: React.FC = () => {
                 })}
               </div>
 
+              {/* Dynamic Pre-Submission Readiness Banner */}
+              {isReadyToSubmit ? (
+                <div className="mt-5 p-4 sm:p-5 rounded-2xl bg-emerald-50 border-2 border-emerald-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm sm:text-base font-black text-emerald-950">
+                        Hồ sơ của Bác đã sẵn sàng để vào quầy!
+                      </h3>
+                      <p className="text-xs sm:text-sm text-emerald-900 mt-0.5 leading-relaxed">
+                        Bác đã kiểm tra đủ <strong>{totalRequired}/{totalRequired} giấy tờ bắt buộc</strong>. Vui lòng di chuyển tới{' '}
+                        <strong>
+                          {assignedCounter
+                            ? `${assignedCounter.code} (Bàn ${assignedCounter.positionNumber} · ${assignedCounter.officerName})`
+                            : 'Quầy tiếp nhận Một cửa'}
+                        </strong>{' '}
+                        để nộp hồ sơ.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSpeakReadiness}
+                    className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                  >
+                    <Volume2 className="w-4 h-4" />
+                    <span>Nghe xác nhận hồ sơ đủ</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-5 p-4 sm:p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <ShieldAlert className="w-5 h-5 text-amber-800 shrink-0 mt-0.5" />
+                      <div>
+                        <h3 className="text-sm font-black text-amber-950">
+                          Còn {missingRequiredDocs.length} giấy tờ bắt buộc chưa được đánh dấu
+                        </h3>
+                        <p className="text-xs text-amber-900 mt-0.5">
+                          Bác kiểm tra xem mình đã có đủ những giấy tờ dưới đây chưa trước khi lấy số vào quầy nhé:
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSpeakReadiness}
+                      className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-amber-100 text-amber-950 font-bold text-xs border border-amber-300 transition-colors cursor-pointer"
+                    >
+                      <Volume2 className="w-3.5 h-3.5 text-amber-800" />
+                      <span>Nghe nhắc giấy tờ còn thiếu</span>
+                    </button>
+                  </div>
+
+                  <ul className="space-y-1.5 pl-2">
+                    {missingRequiredDocs.map((missing) => (
+                      <li key={missing.id} className="text-xs font-bold text-red-900 flex items-start gap-2">
+                        <span className="text-red-600 mt-0.5">•</span>
+                        <span>{missing.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Contextual Ward Assistance Solutions */}
+                  <div className="pt-2.5 border-t border-amber-200/80 space-y-1.5 text-xs text-amber-950 leading-relaxed">
+                    <p className="font-black text-amber-900 uppercase tracking-wide text-[11px]">
+                      Giải pháp hỗ trợ miễn phí ngay tại Phường Sơn Trà:
+                    </p>
+                    {missingHasForm && (
+                      <div className="flex flex-wrap items-center justify-between gap-2 bg-white/80 p-2.5 rounded-xl border border-amber-200">
+                        <span>
+                          • <strong>Chưa có tờ khai / khó viết đơn:</strong> Ghé <strong>Quầy Hướng dẫn (Đ/c Phạm Duy Đại)</strong> ở cửa vào để được in sẵn và viết hộ miễn phí.
+                        </span>
+                        {sampleForm && (
+                          <button
+                            type="button"
+                            onClick={() => openSampleForm('filled')}
+                            className="shrink-0 px-2.5 py-1 rounded-lg bg-[#be111a] hover:bg-red-700 text-white font-bold text-[11px] transition-colors cursor-pointer"
+                          >
+                            Xem mẫu điền sẵn ngay
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    {missingHasCCCD && (
+                      <p>
+                        • <strong>Quên mang thẻ CCCD bản cứng:</strong> Bác có thể xuất trình ứng dụng <strong>VNeID mức độ 2</strong> trên điện thoại, cán bộ quầy chấp nhận tương đương bản chính.
+                      </p>
+                    )}
+                    {missingHasCopy && (
+                      <p>
+                        • <strong>Chưa có bản photo giấy tờ:</strong> Đến <strong>Khu Tiện ích (Đ/c Mai Thị Thanh Tâm)</strong> ngay trong hội trường để được photocopy hoàn toàn miễn phí.
+                      </p>
+                    )}
+                    {!missingHasForm && !missingHasCCCD && !missingHasCopy && (
+                      <p>
+                        • Bác vui lòng mang đầy đủ giấy tờ bản chính đối chiếu hoặc liên hệ <strong>Quầy Hướng dẫn (Đ/c Phạm Duy Đại)</strong> để được kiểm tra trước khi bấm số.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Elderly Support Assistance Note */}
-              <div className="mt-5 p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
-                <div className="text-xs text-amber-900 leading-relaxed">
-                  <strong className="block font-bold mb-0.5">Trợ giúp người cao tuổi viết đơn:</strong>
-                  Bác không cần lo lắng về việc viết biểu mẫu. Khi đến quầy, Bác chỉ cần xuất trình Căn cước công dân, cán bộ tại 
-                  <strong> Quầy Hướng dẫn</strong> hoặc <strong>Ô số 1, Ô số 2</strong> sẽ in sẵn tờ khai và điền thông tin giúp Bác hoàn toàn miễn phí.
+              <div className="mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-700 shrink-0 mt-0.5" />
+                <div className="text-xs text-slate-700 leading-relaxed">
+                  <strong className="block font-bold text-slate-900 mb-0.5">Hỗ trợ người cao tuổi viết đơn:</strong>
+                  Bác không cần lo lắng về việc viết biểu mẫu. Khi đến quầy, Bác chỉ cần xuất trình Căn cước công dân, cán bộ tại{' '}
+                  <strong>Quầy Hướng dẫn</strong> hoặc <strong>{assignedCounter?.code || 'Ô tiếp nhận'}</strong> sẽ hỗ trợ kiểm tra và điền thông tin giúp Bác hoàn toàn miễn phí.
                 </div>
               </div>
             </div>
@@ -743,9 +1027,23 @@ export const ServiceDetailScreen: React.FC = () => {
                 <ChevronRight className="w-4 h-4 text-amber-300 group-hover:translate-x-1 transition-transform shrink-0" />
               </a>
 
+              {sampleForm && (
+                <button
+                  type="button"
+                  onClick={() => openSampleForm('filled')}
+                  className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-sm shadow-sm border border-amber-500/40 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <FileText className="w-5 h-5 text-amber-950" />
+                    <span>Xem mẫu tờ khai minh họa &amp; In mẫu trắng</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
+
               <button
                 onClick={() => setIsPrintModalOpen(true)}
-                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-md transition-colors"
+                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-md transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <Printer className="w-5 h-5 text-white" />
@@ -775,7 +1073,7 @@ export const ServiceDetailScreen: React.FC = () => {
               >
                 <div className="flex items-center gap-2.5">
                   <MessageSquareText className="w-5 h-5 text-amber-300" />
-                  <span>Hỏi Trợ lý AI về thủ tục & mẫu đơn này</span>
+                  <span>Hỏi Trợ lý AI về thủ tục &amp; mẫu đơn này</span>
                 </div>
                 <ChevronRight className="w-4 h-4 text-amber-300" />
               </button>
@@ -784,6 +1082,8 @@ export const ServiceDetailScreen: React.FC = () => {
           </div>
 
         </div>
+
+      </div>
 
       </div>
 
@@ -796,6 +1096,23 @@ export const ServiceDetailScreen: React.FC = () => {
         officer={assignedOfficer}
         ward={selectedWard}
       />
+
+      {/* Illustrated Sample Form & Blank Printable Form Modal */}
+      {sampleForm && (
+        <SampleFormModal
+          isOpen={isSampleFormModalOpen}
+          onClose={() => setIsSampleFormModalOpen(false)}
+          form={sampleForm}
+          serviceName={selectedService.name}
+          serviceCode={selectedService.code}
+          ward={selectedWard}
+          counter={assignedCounter}
+          initialMode={sampleFormInitialMode}
+          onReadText={readText}
+          onStopAudio={stopAudio}
+          isSpeaking={isSpeaking}
+        />
+      )}
 
     </div>
   );

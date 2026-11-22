@@ -18,6 +18,19 @@ app.config['SECRET_KEY'] = 'sontra-kiosk-offline-secret-key-2026'
 # Khởi tạo cơ sở dữ liệu SQLite khi khởi động
 database.init_db()
 
+SAMPLE_FORMS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'sample_forms.json')
+
+def load_sample_forms():
+    """Đọc dữ liệu mẫu tờ khai minh họa chuẩn cho 15 thủ tục"""
+    try:
+        with open(SAMPLE_FORMS_PATH, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+SAMPLE_FORMS = load_sample_forms()
+
 @app.context_processor
 def inject_global_data():
     """Cung cấp dữ liệu dùng chung (Phường Sơn Trà) cho mọi template"""
@@ -89,12 +102,16 @@ def service_detail(service_id):
     all_services = database.get_services('ward-sontra')
     related_services = [s for s in all_services if s.get('counterId') == service.get('counterId') and s['id'] != service_id]
 
+    # Mẫu tờ khai minh họa tương ứng với thủ tục
+    sample_form = SAMPLE_FORMS.get(service_id)
+
     return render_template(
         'service_detail.html',
         service=service,
         counter=counter,
         officer=officer,
-        related_services=related_services
+        related_services=related_services,
+        sample_form=sample_form
     )
 
 @app.route('/mindmap')

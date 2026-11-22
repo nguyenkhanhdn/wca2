@@ -29,9 +29,9 @@ export const PrintableGuideModal: React.FC<PrintableGuideModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto print:static print:bg-white print:p-0 print:block">
       <div 
-        className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-300 overflow-hidden my-8"
+        className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-300 overflow-hidden my-8 print:my-0 print:max-w-none print:rounded-none print:border-none print:shadow-none"
         onClick={e => e.stopPropagation()}
       >
         {/* Modal Controls (Not printed) */}

@@ -19,6 +19,37 @@
       box-shadow: none !important;
       border-radius: 0 !important;
     }
+    /* Khi in mẫu tờ khai từ modal, chỉ hiển thị tờ mẫu */
+    body.printing-sample-form .print-sheet,
+    body.printing-sample-form #related-services-box {
+      display: none !important;
+    }
+    body.printing-sample-form #sample-form-modal {
+      position: static !important;
+      inset: auto !important;
+      background: #ffffff !important;
+      padding: 0 !important;
+      overflow: visible !important;
+      display: block !important;
+    }
+    body.printing-sample-form #sample-form-dialog {
+      max-width: 100% !important;
+      max-height: none !important;
+      box-shadow: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+    }
+    body.printing-sample-form #sample-form-scroll {
+      overflow: visible !important;
+      padding: 0 !important;
+      background: #ffffff !important;
+    }
+    body.printing-sample-form #sample-form-print-sheet {
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      max-width: 100% !important;
+    }
   }
 </style>
 {% endblock %}
@@ -26,7 +57,7 @@
 {% block content %}
 <div class="space-y-6">
 
-  <!-- Thanh điều hướng quay lại & Nút in phiếu hướng dẫn -->
+  <!-- Thanh điều hướng quay lại & Nút thao tác -->
   <div class="no-print flex flex-wrap items-center justify-between gap-3">
     <a href="/citizen" class="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 font-extrabold text-xs rounded-xl border border-slate-200 shadow-xs transition-colors">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
@@ -34,21 +65,28 @@
     </a>
 
     <div class="flex flex-wrap items-center gap-2">
+      {% if sample_form %}
+      <button type="button" id="btn-open-sample-top" class="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xs rounded-xl shadow-xs border border-amber-500/40 flex items-center gap-1.5 cursor-pointer transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        <span>Xem mẫu tờ khai minh họa</span>
+      </button>
+      {% endif %}
+
       <!-- Nút hỏi trợ lý về thủ tục & mẫu đơn này -->
       <button type="button" data-ai-question="Thủ tục {{ service.name }} cần giấy tờ, mẫu đơn gì và làm thế nào?" class="px-4 py-2 bg-[#be111a] hover:bg-red-700 text-white font-black text-xs rounded-xl shadow-xs flex items-center gap-2 cursor-pointer transition-all">
-        <span>Hỏi Trợ lý về thủ tục &amp; mẫu đơn này</span>
+        <span>Hỏi Trợ lý về thủ tục &amp; mẫu đơn</span>
       </button>
 
       <!-- Nút phát giọng đọc toàn bộ hướng dẫn -->
-      <button id="btn-read-service" class="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xs rounded-xl shadow-xs flex items-center gap-2 cursor-pointer transition-all">
+      <button id="btn-read-service" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-xs flex items-center gap-2 cursor-pointer transition-all">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
         <span id="read-service-label">Đọc hướng dẫn thủ tục này</span>
       </button>
 
       <!-- Nút in phiếu hướng dẫn mang về -->
-      <button onclick="window.print()" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl shadow-xs flex items-center gap-2 cursor-pointer transition-colors">
+      <button type="button" onclick="window.print()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer transition-colors">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-        <span>In phiếu hướng dẫn mang về</span>
+        <span>In phiếu hướng dẫn</span>
       </button>
     </div>
   </div>
@@ -56,11 +94,11 @@
   <!-- Tờ phiếu hướng dẫn chuẩn Một Cửa (Hỗ trợ in ấn) -->
   <div class="print-sheet bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
     
-    <!-- Tiêu đề hành chính khi in ấn -->
+    <!-- Tiêu đề hành chính -->
     <div class="border-b-2 border-slate-200 pb-5">
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <div class="flex items-center gap-2 mb-1.5">
+          <div class="flex flex-wrap items-center gap-2 mb-1.5">
             <span class="text-xs font-black text-red-800 bg-red-100 px-3 py-0.5 rounded-md font-mono">
               Mã TTHC: {{ service.code }}
             </span>
@@ -89,9 +127,9 @@
     <!-- Hộp thông tin Lệ phí & Thời hạn giải quyết -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div class="p-5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 space-y-1">
-        <span class="text-xs font-black text-emerald-900 uppercase tracking-wide">MỨC PHÍ & LỆ PHÍ NHÀ NƯỚC</span>
+        <span class="text-xs font-black text-emerald-900 uppercase tracking-wide">MỨC PHÍ &amp; LỆ PHÍ NHÀ NƯỚC</span>
         <div class="text-lg sm:text-xl font-black text-emerald-950">{{ service.fee }}</div>
-        <p class="text-xs text-emerald-800">Thu theo đúng quy định niêm yết công khai của HĐND & UBND TP Đà Nẵng</p>
+        <p class="text-xs text-emerald-800">Thu theo đúng quy định niêm yết công khai của HĐND &amp; UBND TP Đà Nẵng</p>
       </div>
 
       <div class="p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 space-y-1">
@@ -101,44 +139,151 @@
       </div>
     </div>
 
-    <!-- Thành phần hồ sơ & giấy tờ cần mang theo -->
-    <div class="space-y-3">
-      <div class="flex items-center justify-between">
-        <h3 class="text-base font-black text-slate-900 uppercase flex items-center gap-2">
-          <span>📋</span>
-          <span>THÀNH PHẦN HỒ SƠ, GIẤY TỜ CẦN CHUẨN BỊ ({{ service.requiredDocuments|length }} LOẠI)</span>
-        </h3>
-        <span class="text-xs text-slate-500 italic">Người dân kiểm tra kỹ trước khi nộp</span>
+    <!-- Thành phần hồ sơ & Checklist Tự kiểm tra trước khi vào quầy -->
+    <div class="space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200">
+        <div>
+          <h3 class="text-base sm:text-lg font-black text-slate-900 uppercase">
+            1. Thành phần hồ sơ &amp; Tự kiểm tra trước khi vào quầy ({{ service.requiredDocuments|length }} loại)
+          </h3>
+          <p class="no-print text-xs text-slate-500 mt-0.5">
+            Chạm vào từng ô vuông để đánh dấu giấy tờ Bác đã chuẩn bị sẵn
+          </p>
+        </div>
+
+        <div class="no-print flex flex-wrap items-center gap-2">
+          {% if sample_form %}
+          <button type="button" id="btn-open-sample-docs" class="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-xs border border-amber-300 cursor-pointer transition-colors">
+            Xem mẫu điền sẵn
+          </button>
+          {% endif %}
+          <button type="button" id="btn-reset-checklist" class="hidden px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer transition-colors">
+            Đặt lại đánh dấu
+          </button>
+        </div>
       </div>
 
-      <div class="space-y-2.5">
+      <!-- Thanh tiến độ tự kiểm tra hồ sơ -->
+      <div id="checklist-progress-box" class="no-print p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-bold mb-2">
+          <span class="text-slate-800">
+            Tiến độ chuẩn bị giấy tờ bắt buộc:
+            <strong id="checklist-count-label" class="text-red-700">0/0 loại đã sẵn sàng</strong>
+          </span>
+          <span id="checklist-pct-label" class="font-mono text-amber-700">0%</span>
+        </div>
+        <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+          <div id="checklist-progress-bar" class="h-full rounded-full bg-amber-500 transition-all duration-300" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- Danh sách giấy tờ có thể tích chọn -->
+      <div id="checklist-items-container" class="space-y-2.5">
         {% for doc in service.requiredDocuments %}
-        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-start justify-between gap-3">
-          <div class="flex items-start gap-3">
-            <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-800 font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5">
-              {{ loop.index }}
-            </span>
-            <div>
-              <h4 class="text-sm font-black text-slate-900">{{ doc.name }}</h4>
-              {% if doc.note %}
-              <p class="text-xs text-slate-600 mt-0.5">{{ doc.note }}</p>
+        {% set is_form_doc = doc.sampleFormName or ('tờ khai' in doc.name|lower) or ('mẫu' in doc.name|lower) or ('đơn đề nghị' in doc.name|lower) or ('giấy đề nghị' in doc.name|lower) or ('giấy cam kết' in doc.name|lower) or ('phiếu' in doc.name|lower) %}
+        <div
+          class="doc-checklist-row p-4 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200 flex items-start gap-3.5 cursor-pointer transition-all select-none"
+          data-doc-id="{{ doc.id }}"
+          data-doc-name="{{ doc.name }}"
+          data-doc-required="{{ 'true' if doc.isRequired else 'false' }}"
+          data-doc-original="{{ 'true' if doc.isOriginal else 'false' }}"
+          data-doc-copy="{{ 'true' if doc.isCopyOrCertified else 'false' }}"
+          data-doc-form="{{ 'true' if is_form_doc else 'false' }}"
+        >
+          <div class="no-print pt-0.5 shrink-0">
+            <input
+              type="checkbox"
+              class="doc-checkbox w-5 h-5 accent-emerald-600 rounded cursor-pointer"
+              aria-label="Đánh dấu {{ doc.name }}"
+            >
+          </div>
+
+          <div class="flex-1 min-w-0">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h4 class="doc-title text-sm font-black text-slate-900">
+                {{ loop.index }}. {{ doc.name }}
+              </h4>
+              <span class="shrink-0 text-xs font-black px-2.5 py-0.5 rounded-md {% if doc.isRequired %}bg-red-100 text-red-800 border border-red-200{% else %}bg-slate-200 text-slate-700{% endif %}">
+                {% if doc.isRequired %}Bắt buộc{% else %}Tùy trường hợp{% endif %}
+              </span>
+            </div>
+
+            {% if doc.note %}
+            <p class="text-xs text-slate-600 mt-1 leading-relaxed">{{ doc.note }}</p>
+            {% endif %}
+
+            <div class="flex flex-wrap items-center justify-between gap-2 mt-2">
+              <div class="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-slate-500">
+                <span class="px-2 py-0.5 rounded bg-white border border-slate-200">
+                  {% if doc.isOriginal %}Mang Bản chính{% else %}Bản photo{% endif %}
+                </span>
+                {% if doc.isCopyOrCertified %}
+                <span class="px-2 py-0.5 rounded bg-white border border-slate-200">
+                  Bản sao chứng thực
+                </span>
+                {% endif %}
+              </div>
+
+              {% if sample_form and is_form_doc %}
+              <div class="no-print flex flex-wrap items-center gap-1.5" onclick="event.stopPropagation()">
+                <button type="button" class="btn-open-sample-filled px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-[11px] border border-amber-300 cursor-pointer transition-colors">
+                  Xem mẫu điền sẵn
+                </button>
+                {% if sample_form.hasBlankPrintableForm %}
+                <button type="button" class="btn-open-sample-blank px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 font-bold text-[11px] border border-slate-300 cursor-pointer transition-colors">
+                  Mẫu trắng để in
+                </button>
+                {% endif %}
+              </div>
               {% endif %}
             </div>
           </div>
-
-          <span class="shrink-0 text-xs font-black px-2.5 py-1 rounded-md {% if doc.isRequired %}bg-red-100 text-red-800 border border-red-200{% else %}bg-slate-200 text-slate-700{% endif %}">
-            {% if doc.isRequired %}Bắt buộc{% else %}Bản sao / Đối chiếu{% endif %}
-          </span>
         </div>
         {% endfor %}
+      </div>
+
+      <!-- Khối kết quả Tự kiểm tra trước khi vào quầy -->
+      <div id="readiness-missing-box" class="no-print p-4 sm:p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+          <div>
+            <h4 id="readiness-missing-title" class="text-sm font-black text-amber-950">
+              Kiểm tra hồ sơ trước khi vào quầy
+            </h4>
+            <p class="text-xs text-amber-900 mt-0.5">
+              Các giấy tờ bắt buộc dưới đây chưa được đánh dấu chuẩn bị:
+            </p>
+          </div>
+          <button type="button" id="btn-speak-missing" class="shrink-0 px-3 py-1.5 rounded-xl bg-white hover:bg-amber-100 text-amber-950 font-bold text-xs border border-amber-300 cursor-pointer transition-colors">
+            Nghe nhắc giấy tờ còn thiếu
+          </button>
+        </div>
+
+        <ul id="readiness-missing-list" class="space-y-1 text-xs font-bold text-red-900 pl-2"></ul>
+
+        <div id="readiness-tips-box" class="pt-2.5 border-t border-amber-200 space-y-1.5 text-xs text-amber-950 leading-relaxed"></div>
+      </div>
+
+      <div id="readiness-ready-box" class="no-print hidden p-4 sm:p-5 rounded-2xl bg-emerald-50 border-2 border-emerald-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h4 class="text-sm sm:text-base font-black text-emerald-950">
+            Hồ sơ của Bác đã sẵn sàng để vào quầy!
+          </h4>
+          <p class="text-xs sm:text-sm text-emerald-900 mt-0.5 leading-relaxed">
+            Bác đã đánh dấu đủ toàn bộ giấy tờ bắt buộc. Mời Bác tới
+            <strong>{% if counter %}{{ counter.code }} (Bàn {{ counter.positionNumber }} · {{ counter.officerName }}){% else %}Quầy tiếp nhận Một cửa{% endif %}</strong>
+            để nộp hồ sơ.
+          </p>
+        </div>
+        <button type="button" id="btn-speak-ready" class="shrink-0 px-3.5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs cursor-pointer transition-colors">
+          Nghe xác nhận hồ sơ đủ
+        </button>
       </div>
     </div>
 
     <!-- Quy trình các bước thực hiện -->
     <div class="space-y-3">
-      <h3 class="text-base font-black text-slate-900 uppercase flex items-center gap-2">
-        <span>🔄</span>
-        <span>QUY TRÌNH THỰC HIỆN CÁC BƯỚC</span>
+      <h3 class="text-base font-black text-slate-900 uppercase border-b border-slate-200 pb-2">
+        2. Quy trình thực hiện các bước
       </h3>
 
       <div class="space-y-3">
@@ -205,13 +350,13 @@
 
   <!-- Các thủ tục liên quan cùng ô tiếp nhận -->
   {% if related_services %}
-  <div class="no-print bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-3">
+  <div id="related-services-box" class="no-print bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-3">
     <h3 class="text-sm font-black text-slate-900 uppercase">Các thủ tục khác tại cùng {{ counter.code }} (Bàn {{ counter.positionNumber }})</h3>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
       {% for rel in related_services %}
       <a href="/service/{{ rel.id }}" class="p-3 bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-xl transition-all">
         <h4 class="text-xs font-bold text-slate-900 truncate">{{ rel.name }}</h4>
-        <span class="text-[11px] text-slate-500 mt-1 block">⏱️ {{ rel.processingDuration }} · {{ rel.fee }}</span>
+        <span class="text-[11px] text-slate-500 mt-1 block">{{ rel.processingDuration }} · {{ rel.fee }}</span>
       </a>
       {% endfor %}
     </div>
@@ -219,46 +364,599 @@
   {% endif %}
 
 </div>
+
+<!-- MODAL XEM MẪU TỜ KHAI MINH HỌA & MẪU TRẮNG ĐỂ IN -->
+{% if sample_form %}
+<div id="sample-form-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-2 sm:p-4 overflow-y-auto">
+  <div id="sample-form-dialog" class="relative bg-white w-full max-w-4xl max-h-[92vh] rounded-3xl shadow-2xl border border-slate-300 flex flex-col overflow-hidden">
+    <!-- Thanh tiêu đề modal -->
+    <div class="no-print px-4 sm:px-6 py-3.5 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-3 shrink-0">
+      <div class="min-w-0">
+        <h2 class="font-black text-sm sm:text-base truncate">Xem mẫu tờ khai minh họa</h2>
+        <p class="text-xs text-slate-300 truncate">{{ sample_form.formCode }} · Mã TTHC: {{ service.code }}</p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="hidden md:flex items-center bg-slate-800 rounded-xl p-1 border border-slate-700 text-xs font-bold">
+          <button type="button" class="btn-sample-fontsize px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 cursor-pointer" data-size="normal">Vừa</button>
+          <button type="button" class="btn-sample-fontsize px-2.5 py-1 rounded-lg text-slate-300 hover:text-white cursor-pointer" data-size="large">To</button>
+          <button type="button" class="btn-sample-fontsize px-2.5 py-1 rounded-lg text-slate-300 hover:text-white cursor-pointer" data-size="xlarge">Rất to</button>
+        </div>
+
+        <button type="button" id="btn-speak-sample-tip" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold cursor-pointer transition-colors">
+          <span id="speak-sample-tip-label">Nghe hướng dẫn ghi mẫu</span>
+        </button>
+
+        <button type="button" id="btn-print-sample-form" class="px-3.5 py-2 rounded-xl bg-[#be111a] hover:bg-red-700 text-white text-xs font-bold shadow cursor-pointer transition-colors">
+          In mẫu tờ khai này
+        </button>
+
+        <button type="button" id="btn-fullscreen-sample" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold cursor-pointer transition-colors">
+          Phóng to
+        </button>
+
+        <button type="button" id="btn-close-sample-modal" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-red-600 text-slate-200 hover:text-white text-xs font-bold cursor-pointer transition-colors">
+          Đóng
+        </button>
+      </div>
+    </div>
+
+    <!-- Thanh chuyển đổi 2 chế độ: Mẫu điền sẵn vs Mẫu trắng để in -->
+    <div class="no-print px-4 sm:px-6 py-3 bg-slate-100 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
+      <div class="flex items-center gap-2 bg-white p-1 rounded-2xl border border-slate-200">
+        <button type="button" id="btn-tab-filled" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-black bg-[#be111a] text-white cursor-pointer transition-all">
+          Mẫu điền sẵn (Ví dụ minh họa)
+        </button>
+        {% if sample_form.hasBlankPrintableForm %}
+        <button type="button" id="btn-tab-blank" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-black text-slate-700 hover:bg-slate-100 cursor-pointer transition-all">
+          Mẫu trắng để in
+        </button>
+        {% endif %}
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 text-xs">
+        <span class="font-bold text-amber-800 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200">
+          Mục màu vàng: Bác cần điền/kiểm tra
+        </span>
+        <span class="font-semibold text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+          Mục màu xanh: Cán bộ hỗ trợ
+        </span>
+      </div>
+    </div>
+
+    <!-- Nội dung tờ mẫu có thể cuộn -->
+    <div id="sample-form-scroll" class="flex-1 overflow-y-auto p-4 sm:p-8 bg-slate-50">
+      <div id="sample-form-print-sheet" class="max-w-3xl mx-auto bg-white border border-slate-300 rounded-2xl shadow-sm p-6 sm:p-10 text-slate-900 text-sm leading-relaxed">
+        <!-- Quốc hiệu & Tiêu ngữ -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center pb-5 border-b-2 border-slate-900 mb-6">
+          <div>
+            <p class="text-xs uppercase font-semibold text-slate-600">ỦY BAN NHÂN DÂN THÀNH PHỐ ĐÀ NẴNG</p>
+            <p class="text-sm uppercase font-black text-red-800 mt-0.5">UBND {{ current_ward.name|upper }}</p>
+            <p class="text-[11px] text-slate-500 mt-0.5">Bộ phận Tiếp nhận và Trả kết quả</p>
+          </div>
+          <div>
+            <p class="text-xs uppercase font-black tracking-wide text-slate-900">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+            <p class="text-xs font-bold border-b border-slate-800 inline-block pb-0.5 mt-0.5">Độc lập - Tự do - Hạnh phúc</p>
+            <p class="text-[11px] text-slate-500 mt-1 font-mono">{{ sample_form.formCode }}</p>
+          </div>
+        </div>
+
+        <!-- Tiêu đề tờ khai -->
+        <div class="text-center mb-6">
+          <div id="sample-example-badge" class="no-print inline-block px-3 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 text-xs font-black uppercase mb-2">
+            Ví dụ điền sẵn minh họa · Không phải hồ sơ thật
+          </div>
+          <h3 class="text-xl sm:text-2xl font-black uppercase text-slate-950 tracking-tight">{{ sample_form.title }}</h3>
+          <p class="text-sm font-semibold text-slate-700 mt-1">{{ sample_form.subtitle }}</p>
+          <p class="text-xs text-slate-500 mt-1">Áp dụng cho thủ tục: <strong class="text-slate-700">{{ service.name }}</strong></p>
+        </div>
+
+        <!-- Tab 1: Mẫu điền sẵn minh họa -->
+        <div id="sample-tab-filled" class="space-y-5">
+          <div class="p-4 rounded-2xl bg-amber-50 border-2 border-amber-200 text-xs sm:text-sm text-amber-950 leading-relaxed">
+            <strong class="font-black block mb-0.5">Lời khuyên dành cho Bác trước khi viết đơn:</strong>
+            {{ sample_form.elderlyTip }}
+            {% if counter %}
+            <span class="block mt-1 font-bold text-red-800">
+              Nơi tiếp nhận: {{ counter.code }} · Bàn {{ counter.positionNumber }} ({{ counter.officerName }})
+            </span>
+            {% endif %}
+          </div>
+
+          {% for section in sample_form.sections %}
+          <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5 space-y-3.5">
+            <h4 class="font-black text-slate-900 text-sm sm:text-base uppercase border-b border-slate-200 pb-2">
+              {{ section.heading }}
+            </h4>
+            <div class="space-y-3">
+              {% for field in section.fields %}
+              <div class="p-3.5 rounded-xl border {% if field.citizenMustFill %}bg-white border-amber-300{% else %}bg-sky-50/70 border-sky-200{% endif %}">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                  <span class="font-bold text-slate-800 text-xs sm:text-sm">{{ field.label }}</span>
+                  {% if field.citizenMustFill %}
+                  <span class="text-[11px] font-black px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">
+                    Bác điền mục này
+                  </span>
+                  {% else %}
+                  <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200">
+                    Cán bộ hỗ trợ
+                  </span>
+                  {% endif %}
+                </div>
+                <div class="px-3 py-2 rounded-lg bg-slate-50 border border-dashed border-slate-300 font-semibold text-red-900">
+                  {{ field.sampleValue }}
+                </div>
+                {% if field.fillHint %}
+                <p class="text-xs text-slate-600 mt-1.5">
+                  <strong class="text-emerald-700">Gợi ý:</strong> {{ field.fillHint }}
+                </p>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Tab 2: Mẫu trắng để in -->
+        {% if sample_form.hasBlankPrintableForm %}
+        <div id="sample-tab-blank" class="hidden space-y-6">
+          {% for section in sample_form.sections %}
+          <div class="space-y-3">
+            <h4 class="font-black text-slate-900 text-sm sm:text-base uppercase border-b border-slate-200 pb-1.5">
+              {{ section.heading }}
+            </h4>
+            <div class="space-y-4">
+              {% for field in section.fields %}
+              <div class="space-y-1.5">
+                <div class="flex items-baseline justify-between gap-2">
+                  <span class="font-bold text-slate-900 text-sm">{{ field.label }}:</span>
+                  <span class="no-print text-[11px] text-slate-500 italic shrink-0">
+                    {% if field.citizenMustFill %}(Công dân ghi){% else %}(Cán bộ hỗ trợ nếu cần){% endif %}
+                  </span>
+                </div>
+                {% for _ in range(field.blankLines or 1) %}
+                <div class="h-7 border-b border-dotted border-slate-500 w-full"></div>
+                {% endfor %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Chữ ký cuối tờ -->
+        <div class="mt-8 pt-6 border-t border-slate-300 grid grid-cols-1 sm:grid-cols-2 gap-6 text-center">
+          <div class="text-left text-xs text-slate-600 space-y-1">
+            <p class="font-bold text-slate-800">Lưu ý khi nộp trực tiếp tại UBND {{ current_ward.name }}:</p>
+            <p>- Địa chỉ: {{ current_ward.address }}</p>
+            <p>- Đường dây nóng hỗ trợ: {{ current_ward.hotline }}</p>
+            <p>- Căn cứ pháp lý: {{ sample_form.legalNote }}</p>
+          </div>
+          <div>
+            <p class="text-xs italic text-slate-700">Phường Sơn Trà, ngày ....... tháng ....... năm 20......</p>
+            <p class="text-sm font-black text-slate-900 uppercase mt-1">{{ sample_form.signatureLabel }}</p>
+            <div id="sample-signature-hint" class="h-20 flex items-end justify-center text-xs italic text-slate-400">
+              Ví dụ: Nguyễn Văn Hùng (Ký và ghi rõ họ tên)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chân trang modal -->
+    <div class="no-print px-4 sm:px-6 py-3.5 bg-white border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
+      <p class="text-xs text-slate-500">{{ sample_form.legalNote }}</p>
+      <div class="flex flex-wrap items-center gap-2">
+        {% if sample_form.hasBlankPrintableForm %}
+        <button type="button" id="btn-toggle-sample-mode" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs cursor-pointer transition-colors">
+          Chuyển sang Mẫu trắng để in
+        </button>
+        {% endif %}
+        <button type="button" id="btn-print-sample-bottom" class="px-4 py-2 rounded-xl bg-[#be111a] hover:bg-red-700 text-white font-bold text-xs shadow-sm cursor-pointer transition-colors">
+          In mẫu tờ khai này
+        </button>
+        <button type="button" id="btn-close-sample-bottom" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs cursor-pointer transition-colors">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_scripts %}
 <script type="module">
   import { speakText, stopSpeaking } from "{{ url_for('static', filename='js/speech.js') }}";
 
+  const SERVICE_ID = {{ service.id | tojson }};
+  const SERVICE_NAME = {{ service.name | tojson }};
+  const COUNTER_DESC = {% if counter %}{{ (counter.code ~ ', bàn số ' ~ counter.positionNumber ~ ', gặp ' ~ (counter.officerName or 'Cán bộ tiếp nhận')) | tojson }}{% else %}"Bộ phận Một cửa"{% endif %};
+  const HAS_SAMPLE_FORM = {{ 'true' if sample_form else 'false' }};
+
+  // =========================================================================
+  // 1. ĐỌC HƯỚNG DẪN THỦ TỤC BẰNG GIỌNG NÓI
+  // =========================================================================
   let isReading = false;
   const readBtn = document.getElementById('btn-read-service');
   const readLabel = document.getElementById('read-service-label');
 
+  function resetVoiceLabels() {
+    isReading = false;
+    if (readBtn) readBtn.classList.remove('bg-red-600', 'animate-pulse');
+    if (readLabel) readLabel.textContent = 'Đọc hướng dẫn thủ tục này';
+    const tipLabel = document.getElementById('speak-sample-tip-label');
+    if (tipLabel) tipLabel.textContent = 'Nghe hướng dẫn ghi mẫu';
+  }
+
   if (readBtn) {
-    const rawServiceName = `{{ service.name }}`.replace(/^thủ\s+tục\s+/i, '');
-    const textToRead = `Thủ tục ${rawServiceName}. Mã hồ sơ {{ service.code }}. Lệ phí: {{ service.fee }}. Thời hạn giải quyết: {{ service.processingDuration }}. Địa điểm tiếp nhận: {{ counter.code or 'Bộ phận một cửa' }}, Bàn số {{ counter.positionNumber or 1 }}, gặp đồng chí {{ (counter.officerName or 'Cán bộ phụ trách') | replace('Đ/c ', '') }}. Hồ sơ gồm có: {% for doc in service.requiredDocuments %}{{ doc.name }}, {% endfor %}. Bác hãy chuẩn bị đầy đủ theo hướng dẫn này nhé!`;
+    const rawServiceName = SERVICE_NAME.replace(/^thủ\s+tục\s+/i, '');
+    const textToRead = `Thủ tục ${rawServiceName}. Mã hồ sơ {{ service.code }}. Lệ phí: {{ service.fee }}. Thời hạn giải quyết: {{ service.processingDuration }}. Địa điểm tiếp nhận: ${COUNTER_DESC.replace(/Đ\/c /g, 'đồng chí ')}. Hồ sơ gồm có: {% for doc in service.requiredDocuments %}{{ doc.name }}, {% endfor %}. Bác hãy chuẩn bị đầy đủ theo hướng dẫn này nhé!`;
 
     readBtn.addEventListener('click', () => {
       if (isReading) {
         stopSpeaking();
-        isReading = false;
-        readBtn.classList.remove('bg-red-600', 'text-white', 'animate-pulse');
-        readLabel.textContent = 'Đọc hướng dẫn thủ tục này';
+        resetVoiceLabels();
       } else {
         isReading = true;
-        readBtn.classList.add('bg-red-600', 'text-white', 'animate-pulse');
+        readBtn.classList.add('bg-red-600', 'animate-pulse');
         readLabel.textContent = 'Đang đọc... Bấm để dừng';
-
-        speakText(textToRead, 0.90,
-          () => { isReading = true; },
-          () => {
-            isReading = false;
-            readBtn.classList.remove('bg-red-600', 'text-white', 'animate-pulse');
-            readLabel.textContent = 'Đọc hướng dẫn thủ tục này';
-          },
-          () => {
-            isReading = false;
-            readBtn.classList.remove('bg-red-600', 'text-white', 'animate-pulse');
-            readLabel.textContent = 'Đọc hướng dẫn thủ tục này';
-          }
-        );
+        speakText(textToRead, 0.90, () => { isReading = true; }, resetVoiceLabels, resetVoiceLabels);
       }
     });
   }
+
+  // =========================================================================
+  // 2. CHECKLIST TỰ KIỂM TRA HỒ SƠ TRƯỚC KHI VÀO QUẦY (SESSIONSTORAGE)
+  // =========================================================================
+  const STORAGE_KEY = `kiosk-offline-checklist-${SERVICE_ID}`;
+  const docRows = Array.from(document.querySelectorAll('.doc-checklist-row'));
+  const progressBar = document.getElementById('checklist-progress-bar');
+  const countLabel = document.getElementById('checklist-count-label');
+  const pctLabel = document.getElementById('checklist-pct-label');
+  const resetBtn = document.getElementById('btn-reset-checklist');
+  const missingBox = document.getElementById('readiness-missing-box');
+  const missingTitle = document.getElementById('readiness-missing-title');
+  const missingListEl = document.getElementById('readiness-missing-list');
+  const tipsBoxEl = document.getElementById('readiness-tips-box');
+  const readyBox = document.getElementById('readiness-ready-box');
+  const speakMissingBtn = document.getElementById('btn-speak-missing');
+  const speakReadyBtn = document.getElementById('btn-speak-ready');
+
+  let checkedMap = {};
+  try {
+    checkedMap = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}') || {};
+  } catch {
+    checkedMap = {};
+  }
+
+  let latestMissingNames = [];
+  let latestIsReady = false;
+  let latestRequiredTotal = 0;
+  let latestCheckedRequired = 0;
+
+  function renderChecklistState() {
+    let requiredTotal = 0;
+    let checkedRequired = 0;
+    let totalChecked = 0;
+    const missingDocs = [];
+
+    docRows.forEach((row) => {
+      const docId = row.dataset.docId;
+      const isReq = row.dataset.docRequired === 'true';
+      const isChecked = !!checkedMap[docId];
+      const checkbox = row.querySelector('.doc-checkbox');
+      const titleEl = row.querySelector('.doc-title');
+
+      if (checkbox) checkbox.checked = isChecked;
+      if (isChecked) {
+        totalChecked += 1;
+        row.classList.remove('bg-slate-50', 'border-slate-200');
+        row.classList.add('bg-emerald-50', 'border-emerald-300');
+        if (titleEl) titleEl.classList.add('line-through', 'opacity-75', 'text-emerald-950');
+      } else {
+        row.classList.add('bg-slate-50', 'border-slate-200');
+        row.classList.remove('bg-emerald-50', 'border-emerald-300');
+        if (titleEl) titleEl.classList.remove('line-through', 'opacity-75', 'text-emerald-950');
+      }
+
+      if (isReq) {
+        requiredTotal += 1;
+        if (isChecked) {
+          checkedRequired += 1;
+        } else {
+          missingDocs.push({
+            name: row.dataset.docName || '',
+            isForm: row.dataset.docForm === 'true',
+            isOriginal: row.dataset.docOriginal === 'true',
+            isCopy: row.dataset.docCopy === 'true',
+          });
+        }
+      }
+    });
+
+    const pct = requiredTotal > 0 ? Math.round((checkedRequired / requiredTotal) * 100) : 100;
+    const isReady = missingDocs.length === 0;
+    latestMissingNames = missingDocs.map((d) => d.name);
+    latestIsReady = isReady;
+    latestRequiredTotal = requiredTotal;
+    latestCheckedRequired = checkedRequired;
+
+    if (countLabel) {
+      countLabel.textContent = `${checkedRequired}/${requiredTotal} loại đã sẵn sàng`;
+      countLabel.className = isReady ? 'text-emerald-700' : 'text-red-700';
+    }
+    if (pctLabel) {
+      pctLabel.textContent = `${pct}%`;
+      pctLabel.className = `font-mono ${isReady ? 'text-emerald-700' : 'text-amber-700'}`;
+    }
+    if (progressBar) {
+      progressBar.style.width = `${pct}%`;
+      progressBar.className = `h-full rounded-full transition-all duration-300 ${isReady ? 'bg-emerald-600' : 'bg-amber-500'}`;
+    }
+    if (resetBtn) {
+      resetBtn.classList.toggle('hidden', totalChecked === 0);
+    }
+
+    if (isReady) {
+      if (missingBox) missingBox.classList.add('hidden');
+      if (readyBox) readyBox.classList.remove('hidden');
+    } else {
+      if (readyBox) readyBox.classList.add('hidden');
+      if (missingBox) missingBox.classList.remove('hidden');
+      if (missingTitle) {
+        missingTitle.textContent = `Còn ${missingDocs.length} giấy tờ bắt buộc chưa được đánh dấu`;
+      }
+      if (missingListEl) {
+        missingListEl.innerHTML = '';
+        missingDocs.forEach((doc) => {
+          const li = document.createElement('li');
+          li.textContent = `• ${doc.name}`;
+          missingListEl.appendChild(li);
+        });
+      }
+      if (tipsBoxEl) {
+        tipsBoxEl.innerHTML = '';
+        const heading = document.createElement('p');
+        heading.className = 'font-black text-amber-900 uppercase text-[11px]';
+        heading.textContent = 'Giải pháp hỗ trợ miễn phí ngay tại Phường Sơn Trà:';
+        tipsBoxEl.appendChild(heading);
+
+        const hasFormMissing = missingDocs.some((d) => d.isForm);
+        const hasCccdMissing = missingDocs.some((d) => /cccd|căn cước|định danh|tùy thân/i.test(d.name));
+        const hasCopyMissing = missingDocs.some((d) => !d.isOriginal || d.isCopy || /bản sao|photo|trích lục/i.test(d.name));
+
+        if (hasFormMissing) {
+          const row = document.createElement('div');
+          row.className = 'flex flex-wrap items-center justify-between gap-2 bg-white/80 p-2.5 rounded-xl border border-amber-200';
+          const span = document.createElement('span');
+          span.innerHTML = '• <strong>Chưa có tờ khai / khó viết đơn:</strong> Ghé <strong>Quầy Hướng dẫn (Đ/c Phạm Duy Đại)</strong> ở cửa vào để được in sẵn và viết hộ miễn phí.';
+          row.appendChild(span);
+          if (HAS_SAMPLE_FORM) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'px-2.5 py-1 rounded-lg bg-[#be111a] hover:bg-red-700 text-white font-bold text-[11px] cursor-pointer';
+            btn.textContent = 'Xem mẫu điền sẵn ngay';
+            btn.addEventListener('click', () => openSampleModal('filled'));
+            row.appendChild(btn);
+          }
+          tipsBoxEl.appendChild(row);
+        }
+        if (hasCccdMissing) {
+          const p = document.createElement('p');
+          p.innerHTML = '• <strong>Quên mang thẻ CCCD bản cứng:</strong> Bác có thể xuất trình ứng dụng <strong>VNeID mức độ 2</strong> trên điện thoại, cán bộ quầy chấp nhận tương đương bản chính.';
+          tipsBoxEl.appendChild(p);
+        }
+        if (hasCopyMissing) {
+          const p = document.createElement('p');
+          p.innerHTML = '• <strong>Chưa có bản photo giấy tờ:</strong> Đến <strong>Khu Tiện ích (Đ/c Mai Thị Thanh Tâm)</strong> ngay trong hội trường để được photocopy miễn phí.';
+          tipsBoxEl.appendChild(p);
+        }
+        if (!hasFormMissing && !hasCccdMissing && !hasCopyMissing) {
+          const p = document.createElement('p');
+          p.innerHTML = '• Bác vui lòng mang đầy đủ bản chính để đối chiếu hoặc liên hệ <strong>Quầy Hướng dẫn (Đ/c Phạm Duy Đại)</strong> kiểm tra trước khi lấy số.';
+          tipsBoxEl.appendChild(p);
+        }
+      }
+    }
+  }
+
+  docRows.forEach((row) => {
+    const docId = row.dataset.docId;
+    row.addEventListener('click', () => {
+      checkedMap[docId] = !checkedMap[docId];
+      try {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(checkedMap));
+      } catch {
+        // ignore
+      }
+      renderChecklistState();
+    });
+  });
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      checkedMap = {};
+      try {
+        sessionStorage.removeItem(STORAGE_KEY);
+      } catch {
+        // ignore
+      }
+      renderChecklistState();
+    });
+  }
+
+  function speakReadinessStatus() {
+    if (isReading) {
+      stopSpeaking();
+      resetVoiceLabels();
+      return;
+    }
+    isReading = true;
+    const msg = latestIsReady
+      ? `Chúc mừng Bác! Bác đã chuẩn bị đủ ${latestRequiredTotal} giấy tờ bắt buộc cho thủ tục ${SERVICE_NAME}. Bác vui lòng đến ${COUNTER_DESC.replace(/Đ\/c /g, 'đồng chí ')} để nộp hồ sơ nhé.`
+      : `Bác đã chuẩn bị ${latestCheckedRequired} trên ${latestRequiredTotal} giấy tờ bắt buộc. Hiện còn thiếu ${latestMissingNames.length} mục là: ${latestMissingNames.join(', ')}. Nếu thiếu tờ khai hoặc bản photo, Bác ghé Quầy Hướng dẫn ở cửa vào để được hỗ trợ miễn phí ạ.`;
+    speakText(msg, 0.90, () => { isReading = true; }, resetVoiceLabels, resetVoiceLabels);
+  }
+
+  if (speakMissingBtn) speakMissingBtn.addEventListener('click', speakReadinessStatus);
+  if (speakReadyBtn) speakReadyBtn.addEventListener('click', speakReadinessStatus);
+
+  renderChecklistState();
+
+  // =========================================================================
+  // 3. MODAL XEM MẪU TỜ KHAI MINH HỌA & IN MẪU TRẮNG
+  // =========================================================================
+  const sampleModal = document.getElementById('sample-form-modal');
+  const sampleDialog = document.getElementById('sample-form-dialog');
+  const sampleSheet = document.getElementById('sample-form-print-sheet');
+  const tabFilledBtn = document.getElementById('btn-tab-filled');
+  const tabBlankBtn = document.getElementById('btn-tab-blank');
+  const tabFilledPane = document.getElementById('sample-tab-filled');
+  const tabBlankPane = document.getElementById('sample-tab-blank');
+  const exampleBadge = document.getElementById('sample-example-badge');
+  const signatureHint = document.getElementById('sample-signature-hint');
+  const toggleModeBottomBtn = document.getElementById('btn-toggle-sample-mode');
+  let currentSampleMode = 'filled';
+  let isFullscreen = false;
+
+  function setSampleMode(mode) {
+    currentSampleMode = mode === 'blank' && tabBlankPane ? 'blank' : 'filled';
+    const isFilled = currentSampleMode === 'filled';
+
+    if (tabFilledPane) tabFilledPane.classList.toggle('hidden', !isFilled);
+    if (tabBlankPane) tabBlankPane.classList.toggle('hidden', isFilled);
+    if (exampleBadge) exampleBadge.classList.toggle('hidden', !isFilled);
+    if (signatureHint) {
+      signatureHint.textContent = isFilled
+        ? 'Ví dụ: Nguyễn Văn Hùng (Ký và ghi rõ họ tên)'
+        : '(Ký và ghi rõ họ tên)';
+    }
+    if (tabFilledBtn) {
+      tabFilledBtn.className = isFilled
+        ? 'px-4 py-2 rounded-xl text-xs sm:text-sm font-black bg-[#be111a] text-white cursor-pointer transition-all'
+        : 'px-4 py-2 rounded-xl text-xs sm:text-sm font-black text-slate-700 hover:bg-slate-100 cursor-pointer transition-all';
+    }
+    if (tabBlankBtn) {
+      tabBlankBtn.className = !isFilled
+        ? 'px-4 py-2 rounded-xl text-xs sm:text-sm font-black bg-slate-900 text-white cursor-pointer transition-all'
+        : 'px-4 py-2 rounded-xl text-xs sm:text-sm font-black text-slate-700 hover:bg-slate-100 cursor-pointer transition-all';
+    }
+    if (toggleModeBottomBtn) {
+      toggleModeBottomBtn.textContent = isFilled
+        ? 'Chuyển sang Mẫu trắng để in'
+        : 'Xem lại Ví dụ điền sẵn';
+    }
+  }
+
+  function openSampleModal(mode = 'filled') {
+    if (!sampleModal) return;
+    stopSpeaking();
+    resetVoiceLabels();
+    setSampleMode(mode);
+    sampleModal.classList.remove('hidden');
+  }
+
+  function closeSampleModal() {
+    if (!sampleModal) return;
+    stopSpeaking();
+    resetVoiceLabels();
+    sampleModal.classList.add('hidden');
+  }
+
+  const openTopBtn = document.getElementById('btn-open-sample-top');
+  const openDocsBtn = document.getElementById('btn-open-sample-docs');
+  if (openTopBtn) openTopBtn.addEventListener('click', () => openSampleModal('filled'));
+  if (openDocsBtn) openDocsBtn.addEventListener('click', () => openSampleModal('filled'));
+
+  document.querySelectorAll('.btn-open-sample-filled').forEach((btn) => {
+    btn.addEventListener('click', () => openSampleModal('filled'));
+  });
+  document.querySelectorAll('.btn-open-sample-blank').forEach((btn) => {
+    btn.addEventListener('click', () => openSampleModal('blank'));
+  });
+
+  if (tabFilledBtn) tabFilledBtn.addEventListener('click', () => setSampleMode('filled'));
+  if (tabBlankBtn) tabBlankBtn.addEventListener('click', () => setSampleMode('blank'));
+  if (toggleModeBottomBtn) {
+    toggleModeBottomBtn.addEventListener('click', () => {
+      setSampleMode(currentSampleMode === 'filled' ? 'blank' : 'filled');
+    });
+  }
+
+  const closeTopBtn = document.getElementById('btn-close-sample-modal');
+  const closeBottomBtn = document.getElementById('btn-close-sample-bottom');
+  if (closeTopBtn) closeTopBtn.addEventListener('click', closeSampleModal);
+  if (closeBottomBtn) closeBottomBtn.addEventListener('click', closeSampleModal);
+  if (sampleModal) {
+    sampleModal.addEventListener('click', (e) => {
+      if (e.target === sampleModal) closeSampleModal();
+    });
+  }
+
+  const fullscreenBtn = document.getElementById('btn-fullscreen-sample');
+  if (fullscreenBtn && sampleDialog) {
+    fullscreenBtn.addEventListener('click', () => {
+      isFullscreen = !isFullscreen;
+      if (isFullscreen) {
+        sampleDialog.classList.remove('max-w-4xl', 'max-h-[92vh]', 'rounded-3xl');
+        sampleDialog.classList.add('max-w-none', 'h-full', 'max-h-[98vh]', 'rounded-2xl');
+        fullscreenBtn.textContent = 'Thu gọn';
+      } else {
+        sampleDialog.classList.add('max-w-4xl', 'max-h-[92vh]', 'rounded-3xl');
+        sampleDialog.classList.remove('max-w-none', 'h-full', 'max-h-[98vh]', 'rounded-2xl');
+        fullscreenBtn.textContent = 'Phóng to';
+      }
+    });
+  }
+
+  document.querySelectorAll('.btn-sample-fontsize').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const size = btn.dataset.size || 'normal';
+      document.querySelectorAll('.btn-sample-fontsize').forEach((b) => {
+        const active = b.dataset.size === size;
+        b.className = active
+          ? 'btn-sample-fontsize px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 cursor-pointer'
+          : 'btn-sample-fontsize px-2.5 py-1 rounded-lg text-slate-300 hover:text-white cursor-pointer';
+      });
+      if (sampleSheet) {
+        sampleSheet.classList.remove('text-sm', 'text-base', 'text-lg');
+        if (size === 'xlarge') sampleSheet.classList.add('text-lg');
+        else if (size === 'large') sampleSheet.classList.add('text-base');
+        else sampleSheet.classList.add('text-sm');
+      }
+    });
+  });
+
+  const speakSampleTipBtn = document.getElementById('btn-speak-sample-tip');
+  const speakSampleTipLabel = document.getElementById('speak-sample-tip-label');
+  if (speakSampleTipBtn) {
+    const sampleSpokenScript = {{ ((sample_form.spokenTip ~ ' ' ~ sample_form.elderlyTip) if sample_form else '') | tojson }};
+    speakSampleTipBtn.addEventListener('click', () => {
+      if (isReading) {
+        stopSpeaking();
+        resetVoiceLabels();
+      } else if (sampleSpokenScript) {
+        isReading = true;
+        if (speakSampleTipLabel) speakSampleTipLabel.textContent = 'Đang đọc... Bấm để dừng';
+        speakText(sampleSpokenScript, 0.90, () => { isReading = true; }, resetVoiceLabels, resetVoiceLabels);
+      }
+    });
+  }
+
+  function printOnlySampleForm() {
+    document.body.classList.add('printing-sample-form');
+    const cleanup = () => document.body.classList.remove('printing-sample-form');
+    window.addEventListener('afterprint', cleanup, { once: true });
+    window.print();
+    setTimeout(cleanup, 1500);
+  }
+
+  const printSampleBtn = document.getElementById('btn-print-sample-form');
+  const printSampleBottomBtn = document.getElementById('btn-print-sample-bottom');
+  if (printSampleBtn) printSampleBtn.addEventListener('click', printOnlySampleForm);
+  if (printSampleBottomBtn) printSampleBottomBtn.addEventListener('click', printOnlySampleForm);
 </script>
 {% endblock %}

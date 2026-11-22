@@ -96,3 +96,15 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 116, 139, 0.6);
 }
+
+/* Print isolation when printing Guidance Receipt or Sample Form Modals */
+@media print {
+  body.printing-modal-only header,
+  body.printing-modal-only footer,
+  body.printing-modal-only .print\:hidden {
+    display: none !important;
+  }
+  body.printing-modal-only {
+    background: #ffffff !important;
+  }
+}
