@@ -14,7 +14,7 @@ export const AIAssistantFloatingButton: React.FC<AIAssistantFloatingButtonProps>
   if (isOpen) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3 group animate-bounce-subtle">
+    <div className="fixed bottom-14 sm:bottom-16 right-5 sm:right-6 z-40 flex items-center gap-3 group animate-bounce-subtle">
       {/* Elderly-friendly Speech Bubble Hint */}
       <div 
         onClick={(e) => {

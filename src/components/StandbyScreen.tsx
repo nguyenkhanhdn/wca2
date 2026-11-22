@@ -1,23 +1,17 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Building2, 
-  Sparkles, 
-  Volume2, 
-  Mic, 
-  MapPin, 
-  Clock, 
-  CheckCircle2, 
-  ArrowRight, 
-  ShieldCheck, 
-  Layers, 
-  ChevronRight, 
-  Landmark, 
+import React, { useState, useEffect } from 'react';
+import {
+  Volume2,
+  Mic,
+  MapPin,
+  CheckCircle2,
+  ShieldCheck,
+  ChevronRight,
+  Landmark,
   Lock,
   MessageSquareText
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { Counter, PublicService } from '../types';
-import { KioskProcedureGuideModal } from './KioskProcedureGuideModal';
+import kioskHeroIllustration from '../assets/images/kiosk_hero_illustration_1795352996100.jpg';
 
 const DigitalClock: React.FC = React.memo(() => {
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
@@ -35,13 +29,14 @@ const DigitalClock: React.FC = React.memo(() => {
   const month = (currentTime.getMonth() + 1).toString().padStart(2, '0');
   const year = currentTime.getFullYear();
   const dateStr = `${dayName}, ngày ${day}/${month}/${year}`;
+  const timeStr = currentTime.toLocaleTimeString('vi-VN', { hour12: false }).replace(/:/g, ' : ');
 
   return (
-    <div className="text-center md:text-right bg-black/25 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20 shadow-inner">
-      <div className="text-3xl font-mono font-black text-amber-300 tabular-nums tracking-wider">
-        {currentTime.toLocaleTimeString('vi-VN', { hour12: false })}
+    <div className="text-center md:text-right bg-black/25 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20 shadow-inner shrink-0">
+      <div className="text-2xl sm:text-3xl font-mono font-black text-amber-300 tabular-nums tracking-wider whitespace-nowrap">
+        {timeStr}
       </div>
-      <div className="text-xs font-semibold text-white/90 mt-0.5">
+      <div className="text-xs font-semibold text-white/95 mt-0.5 whitespace-nowrap">
         {dateStr}
       </div>
     </div>
@@ -49,271 +44,215 @@ const DigitalClock: React.FC = React.memo(() => {
 });
 
 export const StandbyScreen: React.FC = () => {
-  const { 
-    selectedWard, 
-    currentWardCounters, 
-    currentWardOfficers,
-    currentWardServices,
+  const {
+    selectedWard,
     setCurrentScreen,
-    selectService,
     readText,
     openAIAssistant,
     isAdminLoggedIn,
     setIsAdminLoginModalOpen
   } = useApp();
 
-  const [selectedCounterForGuide, setSelectedCounterForGuide] = useState<Counter | null>(null);
-
-  // Memoize active counter services so references are stable
-  const activeCounterServices = useMemo(() => {
-    if (!selectedCounterForGuide) return [];
-    return currentWardServices.filter(s => s.counterId === selectedCounterForGuide.id);
-  }, [currentWardServices, selectedCounterForGuide?.id]);
-
-  const activeCounterOfficer = useMemo(() => {
-    if (!selectedCounterForGuide) return null;
-    return currentWardOfficers.find(o => o.counterId === selectedCounterForGuide.id) || 
-      currentWardOfficers.find(o => o.name === selectedCounterForGuide.officerName) || null;
-  }, [currentWardOfficers, selectedCounterForGuide]);
+  const [imgError, setImgError] = useState(false);
 
   const handleStart = () => {
-    // Friendly audio welcome for elderly citizens
-    readText(`Kính chào Bác! Chào mừng Bác đến với Trung tâm Phục vụ Hành chính công ${selectedWard.name}. Bác hãy chọn thủ tục hoặc bấm micro để nói yêu cầu.`);
+    readText(
+      `Kính chào Bác! Chào mừng Bác đến với Trung tâm Phục vụ Hành chính công ${selectedWard.name}. Bác hãy chọn thủ tục hoặc bấm micro để nói yêu cầu.`
+    );
     setCurrentScreen('citizen_home');
   };
 
-  const handleOpenCounterGuide = (counter: Counter) => {
-    setSelectedCounterForGuide(counter);
-  };
-
   return (
-    <div 
+    <div
       onClick={handleStart}
       className="relative min-h-screen flex flex-col justify-between bg-[#f4f6f9] text-slate-800 cursor-pointer selection:bg-none"
     >
-      {/* Top National Header Band (Màu đỏ cờ chuẩn Cổng TTĐT Chính phủ #be111a) */}
-      <header className="relative bg-gradient-to-r from-[#9b0e15] via-[#be111a] to-[#9b0e15] text-white shadow-md border-b-4 border-[#ca8a04] px-4 sm:px-8 py-4 sm:py-5">
-        
-        {/* National Motto - Prominently Centered Across Full Screen */}
-        <div className="max-w-7xl mx-auto text-center pb-3 mb-3 border-b border-white/20">
+      {/* Top National Header Band */}
+      <header className="relative bg-gradient-to-r from-[#861419] via-[#9f191f] to-[#861419] text-white shadow-md border-b-4 border-[#ca8a04] px-4 sm:px-8 py-4">
+        {/* National Motto */}
+        <div className="max-w-7xl mx-auto text-center pb-2.5 mb-2.5 border-b border-white/15">
           <p className="text-xs sm:text-sm uppercase tracking-widest text-amber-300 font-black">
             CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
           </p>
-          <p className="text-xs sm:text-sm text-white font-bold tracking-wide border-b border-amber-300/50 inline-block pb-0.5 mt-0.5">
+          <p className="text-xs sm:text-sm text-white font-bold tracking-wide border-b border-amber-300/60 inline-block pb-0.5 mt-0.5">
             Độc lập - Tự do - Hạnh phúc
           </p>
         </div>
 
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          
-          {/* National Emblem & Ward Title */}
+          {/* Emblem & Center Title */}
           <div className="flex items-center gap-4 text-center md:text-left">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#be111a] to-[#7f0b11] flex items-center justify-center shadow-lg ring-3 ring-amber-300 shrink-0">
-              <Landmark className="w-8 h-8 text-amber-300" />
+            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#be111a] to-[#7f0b11] flex items-center justify-center shadow-lg ring-2 ring-amber-300 shrink-0">
+              <Landmark className="w-7 h-7 sm:w-8 sm:h-8 text-amber-300" />
             </div>
 
             <div>
-              <h1 className="text-lg sm:text-xl lg:text-2xl font-black text-white tracking-tight uppercase">
+              <h1 className="text-base sm:text-xl lg:text-2xl font-black text-white tracking-tight uppercase">
                 TRUNG TÂM PHỤC VỤ HÀNH CHÍNH CÔNG {selectedWard.name.toUpperCase()}
               </h1>
-              <p className="text-xs text-amber-100 flex items-center justify-center md:justify-start gap-2 mt-0.5">
+              <p className="text-xs sm:text-sm text-amber-100 flex flex-wrap items-center justify-center md:justify-start gap-x-2 gap-y-0.5 mt-0.5">
                 <span className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-amber-300" />
-                  {selectedWard.address}
+                  <MapPin className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                  <span>{selectedWard.address}</span>
                 </span>
-                <span>·</span>
-                <span>Hotline: <strong className="text-white">{selectedWard.hotline}</strong></span>
+                <span aria-hidden="true">·</span>
+                <span>
+                  Hotline: <strong className="text-white">{selectedWard.hotline}</strong>
+                </span>
               </p>
             </div>
           </div>
 
-          {/* Government Digital Clock */}
+          {/* Digital Clock */}
           <DigitalClock />
-
         </div>
       </header>
 
-      {/* Main Kiosk Hero Canvas (Màu nền xám nhạt trang nhã #f4f6f9) */}
-      <main className="max-w-7xl mx-auto w-full px-4 sm:px-8 py-4 sm:py-6 flex-1 flex flex-col justify-center">
-        
-        {/* Slogan & National Digital Transformation Banner */}
-        <div className="text-center max-w-3xl mx-auto mb-2 sm:mb-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#fef2f2] border border-[#fecaca] text-[#be111a] text-[11px] sm:text-xs font-bold tracking-wide mb-1.5 shadow-xs">
-            <Sparkles className="w-3.5 h-3.5 text-[#be111a]" />
-            CHUYỂN ĐỔI SỐ QUỐC GIA THEO ĐỀ ÁN 06 CHÍNH PHỦ · LẤY NGƯỜI DÂN LÀM TRUNG TÂM
-          </div>
-
-          <h2 className="text-sm sm:text-base lg:text-lg font-black text-slate-800 tracking-tight leading-snug">
-            CỔNG THÔNG TIN DỊCH VỤ CÔNG MỘT CỬA <br />
-            <span className="text-xs sm:text-sm lg:text-base font-extrabold text-[#be111a]">
-              THÂN THIỆN VỚI NGƯỜI CAO TUỔI · CÓ GIỌNG NÓI HƯỚNG DẪN
-            </span>
-          </h2>
-
-          <p className="text-slate-600 text-xs mt-1 max-w-2xl mx-auto">
-            Hệ thống hỗ trợ công dân tra cứu thành phần hồ sơ, lệ phí, thời hạn giải quyết và sơ đồ ô tiếp nhận một cửa nhanh chóng, thuận tiện nhất.
-          </p>
-        </div>
-
-        {/* Live Counter Preview Grid (Cards on #f4f6f9 canvas) */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-700 mb-3 px-1">
-            <span className="flex items-center gap-2">
-              <Layers className="w-4 h-4 text-[#be111a]" />
-              SƠ ĐỒ BỐ TRÍ CÁC Ô TIẾP NHẬN VÀ CHUYÊN VIÊN PHỤ TRÁCH {selectedWard.name.toUpperCase()}
-            </span>
-            <span className="text-slate-500 font-medium lowercase">
-              (Chạm vào bất kỳ vị trí nào để tra cứu thủ tục)
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4">
-            {currentWardCounters.map((counter) => {
-              const counterServices = currentWardServices.filter(s => s.counterId === counter.id);
-              return (
-                <div
-                  key={counter.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenCounterGuide(counter);
-                  }}
-                  className="p-4 rounded-2xl bg-white hover:bg-red-50/50 border border-slate-200 hover:border-[#be111a] transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between cursor-pointer"
-                  title={`Chạm để xem hướng dẫn thủ tục tại ${counter.code}`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-black px-2.5 py-0.5 rounded-md bg-[#fef2f2] text-[#be111a] border border-[#fecaca]">
-                        {counter.code}
-                      </span>
-                      <span className="text-[11px] font-mono text-slate-400 font-semibold">
-                        Bàn {counter.positionNumber}
-                      </span>
-                    </div>
-
-                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#be111a] transition-colors line-clamp-1">
-                      {counter.primaryField}
-                    </h3>
-
-                    <p className="text-xs text-[#be111a] font-bold mt-1">
-                      {counter.officerName}
-                    </p>
-
-                    <p className="text-[11px] text-slate-500 line-clamp-2 mt-1">
-                      {counter.description}
-                    </p>
-                  </div>
-
-                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-[#be111a] font-bold group-hover:text-red-700">
-                    <span className="flex items-center gap-1 group-hover:underline">
-                      Xem thủ tục
-                      {counterServices.length > 0 && (
-                        <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded-md bg-red-100 text-[#be111a] ml-1">
-                          {counterServices.length} TTHC
-                        </span>
-                      )}
-                    </span>
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-[#be111a]" />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      {/* Main Simplified Landing Canvas */}
+      <main className="max-w-7xl mx-auto w-full px-4 sm:px-8 py-4 sm:py-6 flex-1 flex flex-col justify-center gap-5 sm:gap-6">
+        {/* Welcoming Illustrated Scene of the Administrative Center & Staff */}
+        <section
+          aria-label="Minh họa Trung tâm Phục vụ Hành chính công sẵn sàng đón tiếp công dân"
+          className="relative w-full max-w-6xl mx-auto rounded-3xl overflow-hidden bg-gradient-to-b from-stone-100 to-stone-200 border border-stone-200/90 shadow-lg"
+        >
+          {!imgError ? (
+            <div className="relative w-full h-[300px] sm:h-[380px] lg:h-[440px] xl:h-[470px]">
+              <img
+                src={kioskHeroIllustration}
+                alt={`Minh họa cán bộ tại các ô tiếp nhận Trung tâm Phục vụ Hành chính công ${selectedWard.name} trong trang phục lịch lãm, sẵn sàng hỗ trợ người dân`}
+                referrerPolicy="no-referrer"
+                onError={() => setImgError(true)}
+                className="w-full h-full object-cover object-center"
+              />
+              <div
+                aria-hidden="true"
+                className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-stone-900/35 via-stone-900/10 to-transparent pointer-events-none"
+              />
+              <div className="absolute bottom-3 left-4 right-4 flex flex-wrap items-center justify-between gap-2 text-white pointer-events-none">
+                <p className="text-xs sm:text-sm font-bold bg-black/45 backdrop-blur-xs px-3.5 py-1.5 rounded-xl border border-white/20">
+                  Kính chào Bác! Cán bộ các ô tiếp nhận luôn sẵn sàng đón tiếp và hướng dẫn tận tình
+                </p>
+                <p className="hidden sm:block text-xs font-semibold bg-black/45 backdrop-blur-xs px-3 py-1.5 rounded-xl border border-white/20">
+                  {selectedWard.workingHours}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="w-full h-[300px] sm:h-[380px] lg:h-[430px] flex flex-col items-center justify-center bg-gradient-to-br from-amber-50 via-stone-100 to-red-50 p-8 text-center">
+              <div className="w-20 h-20 rounded-3xl bg-[#9f191f] text-amber-300 flex items-center justify-center shadow-md mb-4">
+                <Landmark className="w-10 h-10" />
+              </div>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900">
+                Trung tâm Phục vụ Hành chính công {selectedWard.name}
+              </h2>
+              <p className="text-sm sm:text-base text-slate-600 mt-2 max-w-xl">
+                Các ô tiếp nhận luôn sẵn sàng đón tiếp, hướng dẫn thủ tục rõ ràng và tận tình phục vụ nhân dân.
+              </p>
+            </div>
+          )}
+        </section>
 
         {/* Big Touch-To-Start & AI Q&A Buttons */}
-        <div className="text-center my-2">
+        <section className="text-center">
           <div className="flex flex-col lg:flex-row items-center justify-center gap-4">
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 handleStart();
               }}
-              className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-4 px-8 sm:px-10 py-5 rounded-3xl bg-gradient-to-r from-[#9b0e15] via-[#be111a] to-[#9b0e15] text-white font-black text-lg sm:text-xl shadow-xl hover:shadow-2xl hover:scale-102 active:scale-95 transition-all duration-200 border-3 border-amber-300 cursor-pointer"
+              className="w-full sm:w-auto min-w-[300px] sm:min-w-[380px] group relative inline-flex items-center justify-between gap-4 px-7 sm:px-9 py-4 sm:py-5 rounded-3xl bg-gradient-to-r from-[#8b1318] via-[#a9161d] to-[#8b1318] text-white shadow-xl hover:shadow-2xl hover:scale-[1.015] active:scale-[0.98] transition-all duration-200 border-3 border-amber-300 cursor-pointer"
             >
-              <div className="relative flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-full bg-amber-400 text-[#9b0e15] flex items-center justify-center shrink-0 shadow-md">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-full bg-amber-400 text-[#8b1318] flex items-center justify-center shrink-0 shadow-md">
                   <Mic className="w-6 h-6" />
                 </div>
 
                 <div className="text-left">
-                  <span className="block text-xs uppercase tracking-wider text-amber-200 font-bold">
+                  <span className="block text-[11px] sm:text-xs uppercase tracking-wider text-amber-200 font-bold">
                     Chạm vào đây để xem danh mục
                   </span>
-                  <span className="text-lg sm:text-xl font-black tracking-tight">
+                  <span className="text-base sm:text-xl font-black tracking-tight whitespace-nowrap">
                     CHẠM ĐỂ BẮT ĐẦU TRA CỨU
                   </span>
                 </div>
-
-                <ChevronRight className="w-6 h-6 text-amber-300 group-hover:translate-x-1 transition-transform" />
               </div>
+
+              <ChevronRight className="w-6 h-6 text-amber-300 group-hover:translate-x-1 transition-transform shrink-0" />
             </button>
 
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 openAIAssistant();
               }}
-              className="w-full sm:w-auto group inline-flex items-center justify-center gap-4 px-8 sm:px-10 py-5 rounded-3xl bg-slate-900 hover:bg-slate-800 text-white font-black text-lg sm:text-xl shadow-xl hover:shadow-2xl hover:scale-102 active:scale-95 transition-all duration-200 border-3 border-amber-300 cursor-pointer"
+              className="w-full sm:w-auto min-w-[300px] sm:min-w-[380px] group inline-flex items-center justify-between gap-4 px-7 sm:px-9 py-4 sm:py-5 rounded-3xl bg-[#0b132b] hover:bg-[#131e3f] text-white shadow-xl hover:shadow-2xl hover:scale-[1.015] active:scale-[0.98] transition-all duration-200 border-3 border-amber-300 cursor-pointer"
             >
-              <div className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-md">
-                <MessageSquareText className="w-6 h-6" />
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-md">
+                  <MessageSquareText className="w-6 h-6" />
+                </div>
+
+                <div className="text-left">
+                  <span className="block text-[11px] sm:text-xs uppercase tracking-wider text-emerald-300 font-bold">
+                    Nói hoặc gõ câu hỏi cho Trợ lý
+                  </span>
+                  <span className="text-base sm:text-xl font-black tracking-tight whitespace-nowrap">
+                    HỎI ĐÁP THỦ TỤC VỚI AI
+                  </span>
+                </div>
               </div>
-              <div className="text-left">
-                <span className="block text-xs uppercase tracking-wider text-emerald-300 font-bold">
-                  Nói hoặc gõ câu hỏi cho Trợ lý
-                </span>
-                <span className="text-lg sm:text-xl font-black tracking-tight">
-                  HỎI ĐÁP THỦ TỤC VỚI AI
-                </span>
-              </div>
-              <ChevronRight className="w-6 h-6 text-emerald-300 group-hover:translate-x-1 transition-transform" />
+
+              <ChevronRight className="w-6 h-6 text-emerald-300 group-hover:translate-x-1 transition-transform shrink-0" />
             </button>
           </div>
 
-          <p className="text-xs text-slate-600 mt-4 flex flex-wrap items-center justify-center gap-4 sm:gap-6 font-medium">
+          <p className="text-xs sm:text-sm text-slate-600 mt-3.5 flex flex-wrap items-center justify-center gap-4 sm:gap-7 font-medium">
             <span className="flex items-center gap-1.5">
-              <Volume2 className="w-4 h-4 text-emerald-600" />
-              Có loa giọng nói tiếng Việt hướng dẫn
+              <Volume2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Có loa giọng nói tiếng Việt hướng dẫn</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <Mic className="w-4 h-4 text-[#be111a]" />
-              Nói vào micro để tìm thủ tục
+              <Mic className="w-4 h-4 text-[#be111a] shrink-0" />
+              <span>Nói vào micro để tìm thủ tục</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-amber-600" />
-              Chữ to rõ, dễ nhìn cho người lớn tuổi
+              <CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>Chữ to rõ, dễ nhìn cho người lớn tuổi</span>
             </span>
           </p>
-        </div>
-
+        </section>
       </main>
 
-      {/* Footer (Government Portal Clean Footer) */}
-      <footer className="bg-white border-t border-slate-200 py-4 px-4 sm:px-8 shadow-xs">
+      {/* Clean Institutional Footer */}
+      <footer className="bg-white border-t border-slate-200 py-3.5 px-4 sm:px-8 lg:pr-28 shadow-xs">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
             <span className="flex items-center gap-1.5 text-slate-700 font-semibold">
-              <ShieldCheck className="w-4 h-4 text-[#be111a]" />
-              Chuẩn Danh mục Dịch vụ công Quốc gia (dichvucong.gov.vn)
+              <ShieldCheck className="w-4 h-4 text-[#be111a] shrink-0" />
+              <span>Chuẩn Danh mục Dịch vụ công Quốc gia (dichvucong.gov.vn)</span>
             </span>
-            <span className="hidden sm:inline">·</span>
+            <span className="hidden sm:inline" aria-hidden="true">·</span>
             <span className="hidden sm:inline">
               UBND {selectedWard.name} · Hotline: <strong className="text-slate-800">{selectedWard.hotline}</strong>
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 shrink-0">
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 setCurrentScreen('mindmap_view');
               }}
-              className="text-[#be111a] hover:underline font-bold"
+              className="text-[#be111a] hover:underline font-bold cursor-pointer"
             >
-              Xem Sơ đồ 8 Cán bộ & Các Ô tiếp nhận
+              Xem Sơ đồ 8 Cán bộ &amp; Các Ô tiếp nhận
             </button>
-            <span>·</span>
+            <span aria-hidden="true">·</span>
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 if (isAdminLoggedIn) {
@@ -322,7 +261,7 @@ export const StandbyScreen: React.FC = () => {
                   setIsAdminLoginModalOpen(true);
                 }
               }}
-              className="flex items-center gap-1.5 text-slate-500 hover:text-[#be111a] font-semibold transition-colors"
+              className="flex items-center gap-1.5 text-slate-500 hover:text-[#be111a] font-semibold transition-colors cursor-pointer"
               title="Đăng nhập cán bộ quản trị"
             >
               <Lock className="w-3.5 h-3.5" />
@@ -331,21 +270,6 @@ export const StandbyScreen: React.FC = () => {
           </div>
         </div>
       </footer>
-
-      {/* Modal Hướng dẫn quy trình, hồ sơ, lệ phí, thời gian của dịch vụ tương ứng tại Kiosk */}
-      <KioskProcedureGuideModal
-        isOpen={Boolean(selectedCounterForGuide)}
-        onClose={() => setSelectedCounterForGuide(null)}
-        counter={selectedCounterForGuide}
-        officer={activeCounterOfficer}
-        services={activeCounterServices}
-        ward={selectedWard}
-        onOpenFullDetail={(service) => {
-          setSelectedCounterForGuide(null);
-          selectService(service);
-        }}
-      />
-
     </div>
   );
 };
