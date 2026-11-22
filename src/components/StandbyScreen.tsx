@@ -12,7 +12,8 @@ import {
   Layers, 
   ChevronRight, 
   Landmark, 
-  Lock 
+  Lock,
+  MessageSquareText
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Counter, PublicService } from '../types';
@@ -56,6 +57,7 @@ export const StandbyScreen: React.FC = () => {
     setCurrentScreen,
     selectService,
     readText,
+    openAIAssistant,
     isAdminLoggedIn,
     setIsAdminLoginModalOpen
   } = useApp();
@@ -218,32 +220,55 @@ export const StandbyScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Big Pulsing Touch-To-Start Button (Government Red with Gold Border) */}
+        {/* Big Touch-To-Start & AI Q&A Buttons */}
         <div className="text-center my-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleStart();
-            }}
-            className="group relative inline-flex items-center justify-center gap-4 px-8 sm:px-14 py-5 sm:py-6 rounded-3xl bg-gradient-to-r from-[#9b0e15] via-[#be111a] to-[#9b0e15] text-white font-black text-lg sm:text-2xl shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 border-3 border-amber-300"
-          >
-            <div className="relative flex items-center gap-3.5">
-              <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-amber-400 text-[#9b0e15] flex items-center justify-center shrink-0 shadow-md">
-                <Mic className="w-6 h-6 sm:w-7 sm:h-7 animate-pulse" />
-              </div>
+          <div className="flex flex-col lg:flex-row items-center justify-center gap-4">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleStart();
+              }}
+              className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-4 px-8 sm:px-10 py-5 rounded-3xl bg-gradient-to-r from-[#9b0e15] via-[#be111a] to-[#9b0e15] text-white font-black text-lg sm:text-xl shadow-xl hover:shadow-2xl hover:scale-102 active:scale-95 transition-all duration-200 border-3 border-amber-300 cursor-pointer"
+            >
+              <div className="relative flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-full bg-amber-400 text-[#9b0e15] flex items-center justify-center shrink-0 shadow-md">
+                  <Mic className="w-6 h-6" />
+                </div>
 
+                <div className="text-left">
+                  <span className="block text-xs uppercase tracking-wider text-amber-200 font-bold">
+                    Chạm vào đây để xem danh mục
+                  </span>
+                  <span className="text-lg sm:text-xl font-black tracking-tight">
+                    CHẠM ĐỂ BẮT ĐẦU TRA CỨU
+                  </span>
+                </div>
+
+                <ChevronRight className="w-6 h-6 text-amber-300 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                openAIAssistant();
+              }}
+              className="w-full sm:w-auto group inline-flex items-center justify-center gap-4 px-8 sm:px-10 py-5 rounded-3xl bg-slate-900 hover:bg-slate-800 text-white font-black text-lg sm:text-xl shadow-xl hover:shadow-2xl hover:scale-102 active:scale-95 transition-all duration-200 border-3 border-amber-300 cursor-pointer"
+            >
+              <div className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-md">
+                <MessageSquareText className="w-6 h-6" />
+              </div>
               <div className="text-left">
-                <span className="block text-xs uppercase tracking-wider text-amber-200 font-bold">
-                  Bác chạm ngón tay vào đây để bắt đầu
+                <span className="block text-xs uppercase tracking-wider text-emerald-300 font-bold">
+                  Nói hoặc gõ câu hỏi cho Trợ lý
                 </span>
-                <span className="text-lg sm:text-2xl font-black tracking-tight">
-                  CHẠM ĐỂ BẮT ĐẦU TRA CỨU
+                <span className="text-lg sm:text-xl font-black tracking-tight">
+                  HỎI ĐÁP THỦ TỤC VỚI AI
                 </span>
               </div>
-
-              <ChevronRight className="w-7 h-7 text-amber-300 group-hover:translate-x-1.5 transition-transform" />
-            </div>
-          </button>
+              <ChevronRight className="w-6 h-6 text-emerald-300 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
 
           <p className="text-xs text-slate-600 mt-4 flex flex-wrap items-center justify-center gap-4 sm:gap-6 font-medium">
             <span className="flex items-center gap-1.5">

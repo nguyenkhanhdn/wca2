@@ -15,7 +15,9 @@ import {
   Sparkles,
   HelpCircle,
   MapPin,
-  CheckCircle2
+  CheckCircle2,
+  MessageSquareText,
+  Send
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { PublicService, ServiceCategory } from '../types';
@@ -151,57 +153,96 @@ export const CitizenHome: React.FC = () => {
             </div>
           </div>
 
-          {/* Voice Search Box */}
-          <div className="relative max-w-4xl mx-auto mt-2">
-            <div className="relative flex items-center bg-white rounded-3xl shadow-xl overflow-hidden p-2 text-slate-800 focus-within:ring-4 focus-within:ring-amber-400/50 transition-all">
+          {/* Unified Search & AI Q&A Prompt Box */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (searchQuery.trim()) {
+                openAIAssistant(searchQuery);
+              } else {
+                openAIAssistant();
+              }
+            }}
+            className="relative max-w-5xl mx-auto mt-2"
+          >
+            <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-white rounded-3xl shadow-xl overflow-hidden p-2.5 text-slate-800 focus-within:ring-4 focus-within:ring-amber-400/50 transition-all">
               
-              <div className="pl-3 text-slate-400">
-                <Search className="w-6 h-6" />
+              <div className="flex items-center flex-1 min-w-0">
+                <div className="pl-3 text-slate-400 shrink-0">
+                  <Search className="w-6 h-6" />
+                </div>
+
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Gõ tên thủ tục hoặc câu hỏi (ví dụ: Làm khai sinh cần mẫu đơn gì?)"
+                  className="w-full px-3 py-3 text-base sm:text-lg font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-hidden bg-transparent"
+                />
+
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="px-3 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 shrink-0 cursor-pointer"
+                  >
+                    Xóa
+                  </button>
+                )}
               </div>
 
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Nhập tên thủ tục (ví dụ: khai sinh, kết hôn, công chứng, trợ cấp...)"
-                className="w-full px-3 py-3 text-base sm:text-lg font-medium text-slate-900 placeholder:text-slate-400 focus:outline-hidden bg-transparent"
-              />
-
-              {searchQuery && (
+              <div className="flex items-center gap-2 shrink-0">
                 <button
-                  onClick={() => setSearchQuery('')}
-                  className="px-3 text-xs font-semibold text-slate-400 hover:text-slate-700"
+                  type="submit"
+                  className="flex-1 sm:flex-initial min-h-[48px] flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm sm:text-base shadow-sm transition-colors cursor-pointer whitespace-nowrap"
+                  title="Gửi câu hỏi để Trợ lý AI giải thích chi tiết theo quy định"
                 >
-                  Xóa
+                  <Send className="w-4 h-4 text-amber-300" />
+                  <span>Hỏi đáp AI</span>
                 </button>
-              )}
 
-              {/* Big AI Assistant Microphone Button */}
-              <button
-                onClick={openAIAssistant}
-                className="flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-red-600 via-[#be111a] to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-extrabold text-sm sm:text-base shadow-md hover:shadow-lg transition-all shrink-0 active:scale-95 cursor-pointer ring-2 ring-amber-300/40"
-                title="Bấm để nói chuyện với Trợ lý AI Một Cửa"
-              >
-                <AIAssistantIcon className="w-5 h-5 text-white animate-pulse" />
-                <span className="hidden sm:inline">Nói với Trợ lý AI</span>
-                <span className="sm:hidden">Trợ lý AI</span>
-              </button>
+                {/* Big AI Assistant Microphone Button */}
+                <button
+                  type="button"
+                  onClick={() => openAIAssistant(searchQuery.trim() || undefined)}
+                  className="flex-1 sm:flex-initial min-h-[48px] flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-red-600 via-[#be111a] to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-extrabold text-sm sm:text-base shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer ring-2 ring-amber-300/40 whitespace-nowrap"
+                  title="Bấm để nói chuyện với Trợ lý AI Một Cửa"
+                >
+                  <AIAssistantIcon className="w-5 h-5 text-white" />
+                  <span className="hidden sm:inline">Nói với Trợ lý</span>
+                  <span className="sm:hidden">Bấm nói</span>
+                </button>
+              </div>
             </div>
 
-            {/* Spoken Query Hints */}
-            <div className="flex flex-wrap items-center gap-2 mt-3 px-2 text-xs text-slate-300">
-              <span className="font-semibold text-amber-300">Gợi ý tìm nhanh:</span>
-              {['Khai sinh cho con', 'Đăng ký kết hôn', 'Sao y công chứng CCCD', 'Trợ cấp người già 80 tuổi', 'Mở quán ăn'].map((hint, i) => (
-                <button
-                  key={i}
-                  onClick={() => setSearchQuery(hint)}
-                  className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 transition-colors"
-                >
-                  "{hint}"
-                </button>
-              ))}
+            {/* Easy One-Tap Questions for Elderly Citizens */}
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs sm:text-sm font-bold text-amber-200 flex items-center gap-1.5">
+                  <MessageSquareText className="w-4 h-4 text-amber-300" />
+                  Bác chạm nhanh vào câu hỏi bên dưới để Trợ lý AI giải thích ngay:
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                {[
+                  'Làm giấy khai sinh cần mẫu tờ khai và giấy tờ gì?',
+                  'Người cao tuổi 70 đến 80 tuổi được hưởng trợ cấp thế nào?',
+                  'Thủ tục giải quyết chế độ Hưu trí làm ở đâu?',
+                  'Mắt kém chưa biết viết tờ khai thì ai hỗ trợ?'
+                ].map((q, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => openAIAssistant(q)}
+                    className="min-h-[52px] px-4 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/25 text-white text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 cursor-pointer"
+                  >
+                    <span className="line-clamp-2 leading-snug">{q}</span>
+                    <ArrowRight className="w-4 h-4 text-amber-300 shrink-0" />
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          </form>
 
         </div>
       </section>
@@ -296,13 +337,24 @@ export const CitizenHome: React.FC = () => {
               <p className="text-xs text-slate-500 max-w-md mx-auto mt-1 mb-4">
                 Bác có thể thử tìm bằng từ khóa khác hoặc bấm nút Micro bên dưới để nói cho hệ thống nghe.
               </p>
-              <button
-                onClick={() => setIsVoiceModalOpen(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-colors shadow-sm"
-              >
-                <Mic className="w-4 h-4" />
-                Nói lại yêu cầu vào Micro
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => openAIAssistant(searchQuery)}
+                  className="min-h-[48px] inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#be111a] hover:bg-red-700 text-white font-bold text-sm transition-colors shadow-sm cursor-pointer"
+                >
+                  <MessageSquareText className="w-4 h-4" />
+                  Hỏi Trợ lý AI câu hỏi này ngay
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsVoiceModalOpen(true)}
+                  className="min-h-[48px] inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm transition-colors shadow-sm cursor-pointer"
+                >
+                  <Mic className="w-4 h-4" />
+                  Nói lại yêu cầu vào Micro
+                </button>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -40,7 +40,9 @@ interface AppContextType {
   // AI Assistant Modal
   isAIAssistantOpen: boolean;
   setIsAIAssistantOpen: (open: boolean) => void;
-  openAIAssistant: () => void;
+  openAIAssistant: (initialQuestion?: string | unknown) => void;
+  aiInitialQuestion: string | null;
+  clearAiInitialQuestion: () => void;
 
   // Admin Authentication
   isAdminLoggedIn: boolean;
@@ -247,13 +249,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(false);
   const [isAdminLoginModalOpen, setIsAdminLoginModalOpen] = useState<boolean>(false);
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState<boolean>(false);
+  const [aiInitialQuestion, setAiInitialQuestion] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<PublicService | null>(null);
   const [selectedCounter, setSelectedCounter] = useState<Counter | null>(null);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [activePlayingText, setActivePlayingText] = useState<string | null>(null);
 
-  const openAIAssistant = useCallback(() => {
+  const openAIAssistant = useCallback((initialQuestion?: string | unknown) => {
+    if (typeof initialQuestion === 'string' && initialQuestion.trim()) {
+      setAiInitialQuestion(initialQuestion.trim());
+    } else {
+      setAiInitialQuestion(null);
+    }
     setIsAIAssistantOpen(true);
+  }, []);
+
+  const clearAiInitialQuestion = useCallback(() => {
+    setAiInitialQuestion(null);
   }, []);
 
   const setCurrentScreen = (screen: ScreenType) => {
@@ -545,6 +557,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         isAIAssistantOpen,
         setIsAIAssistantOpen,
         openAIAssistant,
+        aiInitialQuestion,
+        clearAiInitialQuestion,
         isAdminLoggedIn,
         isAdminLoginModalOpen,
         setIsAdminLoginModalOpen,

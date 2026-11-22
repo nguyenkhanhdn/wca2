@@ -20,7 +20,8 @@ import {
   ExternalLink,
   ChevronRight,
   CheckCircle2,
-  Copy
+  Copy,
+  MessageSquareText
 } from 'lucide-react';
 import { useApp, sanitizeServiceNationalPortalUrl } from '../context/AppContext';
 import { PrintableGuideModal } from './PrintableGuideModal';
@@ -37,7 +38,8 @@ export const ServiceDetailScreen: React.FC = () => {
     isSpeaking,
     activePlayingText,
     accessibility,
-    setVoiceSpeed
+    setVoiceSpeed,
+    openAIAssistant
   } = useApp();
 
   const [checkedDocs, setCheckedDocs] = useState<Record<string, boolean>>({});
@@ -754,13 +756,28 @@ export const ServiceDetailScreen: React.FC = () => {
 
               <button
                 onClick={handleAudioPlayback}
-                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-900 font-bold text-sm transition-colors"
+                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-900 font-bold text-sm transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <Volume2 className="w-5 h-5 text-emerald-700" />
                   <span>{isSpeaking ? 'Dừng đọc giọng nói' : 'Nghe đọc lại hướng dẫn'}</span>
                 </div>
                 <ChevronRight className="w-4 h-4 text-emerald-600" />
+              </button>
+
+              <button
+                onClick={() =>
+                  openAIAssistant(
+                    `Cho tôi hỏi chi tiết về thủ tục "${selectedService.name}" (mã ${selectedService.code}): cần mẫu tờ khai nào, giấy tờ gì và thực hiện từng bước ra sao?`
+                  )
+                }
+                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <MessageSquareText className="w-5 h-5 text-amber-300" />
+                  <span>Hỏi Trợ lý AI về thủ tục & mẫu đơn này</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-amber-300" />
               </button>
             </div>
 
