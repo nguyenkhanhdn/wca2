@@ -5,7 +5,6 @@ import {
   FileText, 
   Store, 
   HeartHandshake, 
-  Landmark, 
   ShoppingBag, 
   Smartphone, 
   ArrowRight, 
@@ -17,14 +16,21 @@ import {
   MapPin,
   CheckCircle2,
   MessageSquareText,
-  Send
+  Send,
+  ClipboardList,
+  Plus,
+  Check,
+  Compass
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { PublicService, ServiceCategory } from '../types';
-import { CATEGORY_LABELS } from '../data/initialData';
 import { VoiceSearchModal } from './VoiceSearchModal';
 import { AIAssistantIcon } from './AIAssistantIcon';
 import { removeVietnameseTones } from '../utils/speech';
+import {
+  getServiceLevelInfo,
+  getWardOfficeStatus,
+  LIFE_SCENARIOS
+} from '../utils/officeHours';
 
 export const CitizenHome: React.FC = () => {
   const { 
@@ -34,12 +40,20 @@ export const CitizenHome: React.FC = () => {
     selectService, 
     setCurrentScreen,
     readText,
-    openAIAssistant
+    openAIAssistant,
+    visitPlanIds,
+    toggleVisitPlanService,
+    addMultipleToVisitPlan,
+    setIsVisitPlanModalOpen
   } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+
+  const officeStatus = getWardOfficeStatus();
+  const activeScenario = LIFE_SCENARIOS.find((s) => s.id === selectedScenarioId) || null;
 
   // Quick categories for senior citizens
   const categories: { id: string; label: string; icon: any; color: string; desc: string }[] = [
@@ -87,9 +101,13 @@ export const CitizenHome: React.FC = () => {
     }
   ];
 
-  // Filter services by category and text search
+  // Filter services by scenario, category, and text search
   const filteredServices = useMemo(() => {
     return currentWardServices.filter(service => {
+      if (activeScenario && !activeScenario.serviceIds.includes(service.id)) {
+        return false;
+      }
+
       // Category filter
       if (selectedCategory !== 'all' && service.category !== selectedCategory) {
         return false;
@@ -113,7 +131,7 @@ export const CitizenHome: React.FC = () => {
 
       return true;
     });
-  }, [currentWardServices, selectedCategory, searchQuery]);
+  }, [currentWardServices, activeScenario, selectedCategory, searchQuery]);
 
   // Find counter info for a service
   const getCounterForService = (counterId: string) => {
@@ -141,14 +159,24 @@ export const CitizenHome: React.FC = () => {
               </p>
             </div>
 
-            {/* Quick Button to View Counter Map */}
-            <div className="shrink-0 flex items-center gap-2">
+            {/* Quick Actions: Counter Map & Pre-Visit Plan */}
+            <div className="shrink-0 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsVisitPlanModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs sm:text-sm font-black transition-all shadow-sm cursor-pointer"
+              >
+                <ClipboardList className="w-4 h-4" />
+                <span className="tabular-nums">
+                  Kế hoạch chuẩn bị ({visitPlanIds.length})
+                </span>
+              </button>
               <button
                 onClick={() => setCurrentScreen('mindmap_view')}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 text-amber-200 border border-amber-300/40 text-xs sm:text-sm font-bold transition-all shadow-sm"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 text-amber-200 border border-amber-300/40 text-xs sm:text-sm font-bold transition-all shadow-sm cursor-pointer"
               >
                 <Layers className="w-4 h-4 text-amber-300" />
-                Xem sơ đồ các ô tiếp nhận
+                <span>Sơ đồ các ô</span>
               </button>
             </div>
           </div>
@@ -248,10 +276,121 @@ export const CitizenHome: React.FC = () => {
       </section>
 
       {/* Main Content Area */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 -mt-4">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 -mt-4 space-y-8">
         
+        {/* Operational Utility Strip: Live Office Hours & Best Time to Visit */}
+        <section className="bg-white rounded-2xl px-5 py-4 border border-slate-200 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+              officeStatus.isOpen ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'
+            }`}>
+              <Clock className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2 text-sm font-bold text-slate-900">
+                <span>{officeStatus.statusLabel}</span>
+                <span aria-hidden="true" className="text-slate-300">·</span>
+                <span className="text-xs font-semibold text-slate-600">
+                  {selectedWard.address}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 mt-0.5">
+                {officeStatus.detailText} {officeStatus.bestVisitTip}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsVisitPlanModalOpen(true)}
+              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors cursor-pointer whitespace-nowrap"
+            >
+              {visitPlanIds.length > 0
+                ? `Mở kế hoạch chuẩn bị (${visitPlanIds.length} thủ tục)`
+                : 'Lập kế hoạch chuẩn bị ở nhà'}
+            </button>
+          </div>
+        </section>
+
+        {/* Life-Event Pre-Visit Lookup (Tra cứu theo tình huống đời sống) */}
+        <section>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3 px-1">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+              <Compass className="w-4 h-4 text-red-700" />
+              Tìm hiểu trước theo tình huống gia đình
+            </h2>
+            {activeScenario && (
+              <button
+                type="button"
+                onClick={() => setSelectedScenarioId(null)}
+                className="text-xs font-bold text-red-700 hover:underline cursor-pointer"
+              >
+                Bỏ chọn tình huống
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {LIFE_SCENARIOS.map((sc) => {
+              const isActive = selectedScenarioId === sc.id;
+              return (
+                <button
+                  key={sc.id}
+                  type="button"
+                  onClick={() => {
+                    if (isActive) {
+                      setSelectedScenarioId(null);
+                    } else {
+                      setSelectedScenarioId(sc.id);
+                      setSelectedCategory('all');
+                      setSearchQuery('');
+                    }
+                  }}
+                  className={`p-4 rounded-2xl text-left border transition-all cursor-pointer flex flex-col justify-between gap-2 ${
+                    isActive
+                      ? 'bg-red-800 text-white border-red-700 shadow-sm'
+                      : 'bg-white hover:bg-slate-50 text-slate-900 border-slate-200'
+                  }`}
+                >
+                  <div>
+                    <h3 className={`text-sm sm:text-base font-bold ${isActive ? 'text-white' : 'text-slate-900'}`}>
+                      {sc.title}
+                    </h3>
+                    <p className={`text-xs mt-1 leading-relaxed ${isActive ? 'text-red-100' : 'text-slate-600'}`}>
+                      {sc.subtitle}
+                    </p>
+                  </div>
+                  <div className={`text-xs font-bold tabular-nums ${isActive ? 'text-amber-300' : 'text-red-700'}`}>
+                    {isActive ? 'Đang lọc hiển thị bên dưới' : `Xem ${sc.serviceIds.length} thủ tục liên quan`}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {activeScenario && (
+            <div className="mt-3 p-4 rounded-2xl bg-amber-50 border border-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="text-xs sm:text-sm text-amber-950 leading-relaxed">
+                <strong className="font-bold">Lưu ý trước khi đi ({activeScenario.title}):</strong>{' '}
+                {activeScenario.preVisitTip}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  addMultipleToVisitPlan(activeScenario.serviceIds);
+                  setIsVisitPlanModalOpen(true);
+                }}
+                className="shrink-0 px-4 py-2 rounded-xl bg-[#be111a] hover:bg-red-700 text-white text-xs font-bold cursor-pointer whitespace-nowrap"
+              >
+                Gộp nhóm này vào Kế hoạch đi nộp
+              </button>
+            </div>
+          )}
+        </section>
+
         {/* Category Cards (Suggestive Touch Cards with Icons + Text) */}
-        <section className="mb-8">
+        <section>
           <div className="flex items-center justify-between mb-3 px-1">
             <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-red-600" />
@@ -271,6 +410,7 @@ export const CitizenHome: React.FC = () => {
                 <button
                   key={cat.id}
                   onClick={() => {
+                    setSelectedScenarioId(null);
                     setSelectedCategory(cat.id);
                     setSearchQuery('');
                   }}
@@ -360,6 +500,8 @@ export const CitizenHome: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredServices.map((service) => {
                 const counter = getCounterForService(service.counterId);
+                const levelInfo = getServiceLevelInfo(service.level);
+                const isPlanned = visitPlanIds.includes(service.id);
 
                 return (
                   <div
@@ -368,23 +510,21 @@ export const CitizenHome: React.FC = () => {
                     className="p-5 sm:p-6 rounded-3xl bg-white hover:bg-red-50/30 border border-slate-200 hover:border-red-400 transition-all duration-200 shadow-xs hover:shadow-md cursor-pointer flex flex-col justify-between group"
                   >
                     <div>
-                      {/* Top Badges */}
-                      <div className="flex items-center justify-between gap-2 mb-2.5">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold px-2.5 py-0.5 rounded-md bg-red-100 text-red-800 font-mono">
-                            Mã: {service.code}
+                      {/* Clean Inline Metadata Header */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-2 text-xs text-slate-500">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-mono font-bold text-red-800">
+                            {service.code}
                           </span>
-                          {service.isPopular && (
-                            <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                              Phổ biến
-                            </span>
-                          )}
+                          <span aria-hidden="true">·</span>
+                          <span className={levelInfo.canOnlineFromHome ? 'text-emerald-700 font-semibold' : 'text-slate-600 font-medium'}>
+                            {levelInfo.shortLabel}
+                          </span>
                         </div>
 
-                        {/* Location Booth Tag */}
                         {counter && (
-                          <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-blue-600" />
+                          <span className="font-bold text-blue-800 flex items-center gap-1">
+                            <MapPin className="w-3.5 h-3.5 text-blue-600" />
                             {counter.code}
                           </span>
                         )}
@@ -402,8 +542,8 @@ export const CitizenHome: React.FC = () => {
                     </div>
 
                     {/* Metadata & Actions */}
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                      <div className="space-y-0.5">
+                    <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                      <div className="space-y-0.5 tabular-nums">
                         <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
                           <Clock className="w-3.5 h-3.5 text-slate-400" />
                           <span>Thời hạn: <strong className="text-slate-800">{service.processingDuration}</strong></span>
@@ -414,21 +554,39 @@ export const CitizenHome: React.FC = () => {
                       </div>
 
                       <div className="flex items-center gap-2">
+                        {/* Save to Pre-Visit Plan Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleVisitPlanService(service.id);
+                          }}
+                          className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold border transition-colors cursor-pointer whitespace-nowrap ${
+                            isPlanned
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                              : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                          }`}
+                          title="Lưu vào kế hoạch chuẩn bị trước khi đến phường"
+                        >
+                          {isPlanned ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                          <span>{isPlanned ? 'Đã lưu' : 'Lưu kế hoạch'}</span>
+                        </button>
+
                         {/* Audio Preview Button */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             readText(service.audioScript);
                           }}
-                          className="p-2.5 rounded-xl bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-600 transition-colors"
+                          className="p-2.5 rounded-xl bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-600 transition-colors cursor-pointer"
                           title="Nghe tóm tắt thủ tục này"
                         >
                           <Volume2 className="w-4 h-4" />
                         </button>
 
                         {/* Touch View Guidance Button */}
-                        <span className="flex items-center gap-1 px-3.5 py-2 rounded-xl bg-red-600 group-hover:bg-red-700 text-white font-bold text-xs shadow-xs transition-colors">
-                          Xem hướng dẫn
+                        <span className="flex items-center gap-1 px-3.5 py-2 rounded-xl bg-red-600 group-hover:bg-red-700 text-white font-bold text-xs shadow-xs transition-colors whitespace-nowrap">
+                          Chi tiết
                           <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                         </span>
                       </div>

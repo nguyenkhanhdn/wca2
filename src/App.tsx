@@ -14,6 +14,7 @@ import { AdminPanel } from './components/AdminPanel';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { AIAssistantFloatingButton } from './components/AIAssistantFloatingButton';
 import { AIAssistantModal } from './components/AIAssistantModal';
+import { VisitPlanModal } from './components/VisitPlanModal';
 import { Lock, ShieldCheck } from 'lucide-react';
 
 const AppContent: React.FC = () => {
@@ -101,6 +102,9 @@ const AppContent: React.FC = () => {
         isOpen={isAIAssistantOpen} 
         onClose={() => setIsAIAssistantOpen(false)} 
       />
+
+      {/* Pre-Visit Consolidated Planner Modal */}
+      <VisitPlanModal />
     </div>
   );
 };

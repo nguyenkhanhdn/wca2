@@ -81,6 +81,31 @@
     @media print {
       .no-print { display: none !important; }
       body { background: white !important; color: black !important; font-size: 12pt !important; }
+      body.printing-visit-plan main,
+      body.printing-visit-plan #sample-form-modal,
+      body.printing-visit-plan #ai-assistant-modal {
+        display: none !important;
+      }
+      body.printing-visit-plan #visit-plan-modal {
+        position: static !important;
+        inset: auto !important;
+        background: #ffffff !important;
+        padding: 0 !important;
+        display: block !important;
+        overflow: visible !important;
+      }
+      body.printing-visit-plan #visit-plan-dialog {
+        max-width: 100% !important;
+        max-height: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+      }
+      body.printing-visit-plan #visit-plan-body {
+        overflow: visible !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+      }
     }
   </style>
   {% block extra_head %}{% endblock %}
@@ -339,6 +364,55 @@
     </div>
   </div>
 
+  <!-- Modal Kế hoạch chuẩn bị trước khi đến Phường (Global Offline) -->
+  <div id="visit-plan-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-2 sm:p-4 overflow-y-auto">
+    <div id="visit-plan-dialog" class="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-300 flex flex-col max-h-[92vh] overflow-hidden">
+      <div class="no-print px-5 sm:px-6 py-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div>
+          <h2 class="font-black text-base sm:text-lg">Kế hoạch chuẩn bị trước khi đến Phường</h2>
+          <p id="visit-plan-subtitle" class="text-xs text-slate-300">Gộp giấy tờ, lộ trình các ô và dự trù lệ phí</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <div id="visit-plan-header-actions" class="flex flex-wrap items-center gap-2">
+            <button type="button" id="btn-speak-visit-plan" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold cursor-pointer transition-colors">
+              <span id="speak-visit-plan-label">Nghe danh sách mang theo</span>
+            </button>
+            <button type="button" id="btn-print-visit-plan" class="px-3.5 py-2 rounded-xl bg-[#be111a] hover:bg-red-700 text-white text-xs font-bold cursor-pointer transition-colors">
+              In bảng chuẩn bị
+            </button>
+          </div>
+          <button type="button" id="btn-close-visit-plan" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-red-600 text-slate-200 hover:text-white text-xs font-bold cursor-pointer transition-colors">
+            Đóng
+          </button>
+        </div>
+      </div>
+
+      <div id="visit-plan-body" class="flex-1 overflow-y-auto p-5 sm:p-8 space-y-6 bg-[#f8fafc]"></div>
+
+      <div class="no-print px-5 sm:px-6 py-4 bg-white border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div class="text-xs text-slate-500">
+          Con cháu có thể sao chép bảng này gửi Zalo/SMS cho ông bà trước khi đi nộp.
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" id="btn-copy-visit-plan" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs cursor-pointer transition-colors">
+            Sao chép gửi người thân
+          </button>
+          <button type="button" id="btn-close-visit-plan-bottom" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer transition-colors">
+            Đóng
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dữ liệu offline dùng cho Kế hoạch chuẩn bị & Giờ tiếp nhận -->
+  <script>
+    window.__OFFLINE_WARD__ = {{ current_ward | tojson }};
+    window.__OFFLINE_COUNTERS__ = {{ global_counters | tojson }};
+    window.__OFFLINE_SERVICES__ = {{ global_services | tojson }};
+  </script>
+
   <!-- Script đồng hồ Kiosk -->
   <script>
     function updateKioskClock() {
@@ -354,8 +428,9 @@
     updateKioskClock();
   </script>
 
-  <!-- Script Trợ lý AI & Trợ năng Kiosk -->
+  <!-- Script Trợ lý AI, Kế hoạch chuẩn bị & Trợ năng Kiosk -->
   <script type="module" src="{{ url_for('static', filename='js/kiosk.js') }}"></script>
+  <script type="module" src="{{ url_for('static', filename='js/visit_plan.js') }}"></script>
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>

@@ -17,12 +17,25 @@
         </p>
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" data-open-visit-plan class="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-xl cursor-pointer shadow-xs tabular-nums">
+          Kế hoạch chuẩn bị (<span data-visit-plan-count>0</span>)
+        </button>
         <button class="btn-open-ai-assistant px-4 py-2 bg-red-50 hover:bg-red-100 text-[#be111a] border border-red-200 font-extrabold text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-xs">
-          <span>🤖</span>
           <span>Nói tên thủ tục cần tìm</span>
         </button>
       </div>
+    </div>
+
+    <!-- Thanh trạng thái Giờ tiếp nhận & Khung giờ ít đông -->
+    <div id="offline-office-strip" class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+      <div>
+        <strong id="offline-office-status" class="text-slate-900">Đang kiểm tra giờ làm việc...</strong>
+        <span class="text-slate-600 ml-1" id="offline-office-detail">{{ current_ward.address }} · {{ current_ward.working_hours }}</span>
+      </div>
+      <button type="button" data-open-visit-plan class="shrink-0 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer">
+        <span data-visit-plan-label>Lập kế hoạch chuẩn bị ở nhà</span>
+      </button>
     </div>
 
     <!-- Thanh tìm kiếm nhanh -->
@@ -86,34 +99,82 @@
         Dân tộc - Tôn giáo
       </a>
       <a href="/citizen?category=cong-thuong-tthc-khac{% if search_query %}&search={{ search_query }}{% endif %}" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all {% if selected_category == 'cong-thuong-tthc-khac' %}bg-[#be111a] text-white shadow-xs{% else %}bg-slate-100 hover:bg-slate-200 text-slate-700{% endif %}">
-        Công Thương & Khác
+        Công Thương &amp; Khác
       </a>
     </div>
   </div>
+
+  <!-- Tra cứu theo tình huống gia đình trước khi đến phường -->
+  <section class="space-y-3">
+    <div class="flex flex-wrap items-center justify-between gap-2 px-1">
+      <h3 class="text-sm font-black uppercase tracking-wide text-slate-700">
+        Tìm hiểu trước theo tình huống gia đình
+      </h3>
+      <button type="button" id="btn-clear-scenario" class="hidden text-xs font-bold text-red-700 hover:underline cursor-pointer">
+        Bỏ chọn tình huống
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <button type="button" class="btn-life-scenario p-4 rounded-2xl text-left bg-white hover:bg-slate-50 border border-slate-200 cursor-pointer transition-all" data-scenario-id="newborn" data-service-ids="srv-khai-sinh,srv-ho-tro-vneid-dvc" data-tip="Chỉ cần điền 1 lần thủ tục liên thông 3 trong 1 để cháu có cả Giấy khai sinh, Thường trú và Thẻ BHYT.">
+        <div class="text-sm font-black text-slate-900">Nhà mới sinh em bé</div>
+        <div class="text-xs text-slate-600 mt-1">Khai sinh liên thông BHYT, thường trú &amp; trợ giúp VNeID</div>
+      </button>
+      <button type="button" class="btn-life-scenario p-4 rounded-2xl text-left bg-white hover:bg-slate-50 border border-slate-200 cursor-pointer transition-all" data-scenario-id="marriage" data-service-ids="srv-ket-hon,srv-xac-nhan-hon-nhan" data-tip="Đăng ký kết hôn cần cả hai vợ chồng có mặt trực tiếp để ký vào Sổ hộ tịch.">
+        <div class="text-sm font-black text-slate-900">Kết hôn &amp; Độc thân</div>
+        <div class="text-xs text-slate-600 mt-1">Đăng ký kết hôn, xin giấy xác nhận tình trạng hôn nhân</div>
+      </button>
+      <button type="button" class="btn-life-scenario p-4 rounded-2xl text-left bg-white hover:bg-slate-50 border border-slate-200 cursor-pointer transition-all" data-scenario-id="bereavement" data-service-ids="srv-khai-tu,srv-chung-thuc-ban-sao" data-tip="Cần mang theo Giấy báo tử bản chính và CCCD của người đi khai tử; trích lục làm nhiều bản luôn 1 lần.">
+        <div class="text-sm font-black text-slate-900">Gia đình có người qua đời</div>
+        <div class="text-xs text-slate-600 mt-1">Đăng ký khai tử, trích lục &amp; chứng thực giấy tờ thừa kế</div>
+      </button>
+      <button type="button" class="btn-life-scenario p-4 rounded-2xl text-left bg-white hover:bg-slate-50 border border-slate-200 cursor-pointer transition-all" data-scenario-id="elderly_pension" data-service-ids="srv-tro-cap-nguoi-cao-tuoi,srv-huu-tri" data-tip="Người cao tuổi đi lại khó khăn có thể nhờ con cháu tra cứu trước ở nhà hoặc nhờ Quầy Hướng dẫn viết hộ.">
+        <div class="text-sm font-black text-slate-900">Người cao tuổi &amp; Hưu trí</div>
+        <div class="text-xs text-slate-600 mt-1">Trợ cấp người cao tuổi 70–75 tuổi, chế độ hưu trí xã hội</div>
+      </button>
+      <button type="button" class="btn-life-scenario p-4 rounded-2xl text-left bg-white hover:bg-slate-50 border border-slate-200 cursor-pointer transition-all" data-scenario-id="business" data-service-ids="srv-ho-kinh-doanh-moi,srv-an-toan-thuc-pham,srv-ban-le-thuoc-la-ruou" data-tip="Nếu mở quán ăn hoặc tạp hóa nên chuẩn bị bản photo hợp đồng thuê mặt bằng hoặc sổ đỏ trước khi đi.">
+        <div class="text-sm font-black text-slate-900">Mở hộ kinh doanh &amp; Quán ăn</div>
+        <div class="text-xs text-slate-600 mt-1">Đăng ký hộ kinh doanh, An toàn thực phẩm, bán lẻ đặc thù</div>
+      </button>
+      <button type="button" class="btn-life-scenario p-4 rounded-2xl text-left bg-white hover:bg-slate-50 border border-slate-200 cursor-pointer transition-all" data-scenario-id="notary_social" data-service-ids="srv-chung-thuc-ban-sao,srv-chung-thuc-chu-ky,srv-tro-cap-khuyet-tat,srv-mien-giam-hoc-phi" data-tip="Luôn mang theo bản chính đối chiếu và chưa ký trước vào giấy tờ cần chứng thực chữ ký.">
+        <div class="text-sm font-black text-slate-900">Công chứng &amp; Trợ cấp xã hội</div>
+        <div class="text-xs text-slate-600 mt-1">Chứng thực bản sao, chữ ký, người khuyết tật, miễn giảm học phí</div>
+      </button>
+    </div>
+
+    <div id="scenario-active-banner" class="hidden p-4 rounded-2xl bg-amber-50 border border-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div id="scenario-active-tip" class="text-xs sm:text-sm text-amber-950 font-medium"></div>
+      <button type="button" id="btn-add-scenario-plan" class="shrink-0 px-4 py-2 rounded-xl bg-[#be111a] hover:bg-red-700 text-white font-bold text-xs cursor-pointer">
+        Gộp nhóm này vào Kế hoạch đi nộp
+      </button>
+    </div>
+  </section>
 
   <!-- Danh sách thủ tục hành chính -->
   <div class="space-y-4">
     {% if services %}
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {% for s in services %}
-        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-red-300 hover:shadow-md transition-all flex flex-col justify-between">
+        <div class="service-catalog-card bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-red-300 hover:shadow-md transition-all flex flex-col justify-between" data-service-id="{{ s.id }}">
           <div class="space-y-3">
             
-            <!-- Đầu thẻ: Mã & Thẻ phổ biến -->
-            <div class="flex items-center justify-between gap-2">
-              <div class="flex items-center gap-2">
-                <span class="text-[11px] font-black text-red-800 bg-red-100 px-2.5 py-0.5 rounded-md font-mono">
-                  {{ s.code }}
-                </span>
-                {% if s.isPopular %}
-                <span class="text-[10px] font-black text-amber-900 bg-amber-100 px-2 py-0.5 rounded-md uppercase">
-                  Phổ biến
-                </span>
+            <!-- Đầu thẻ: Mã, hình thức nộp & Vị trí ô -->
+            <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-mono font-black text-red-800">{{ s.code }}</span>
+                <span>·</span>
+                {% set lvl = (s.level or '')|lower %}
+                {% if lvl == 'toan_trinh' or lvl == 'toàn trình' %}
+                <span class="font-semibold text-emerald-700">Nộp online 100% ở nhà được</span>
+                {% elif lvl == 'mot_phan' or lvl == 'một phần' %}
+                <span class="font-semibold text-blue-700">Khai trước ở nhà, mang bản chính đối chiếu</span>
+                {% else %}
+                <span class="font-medium text-slate-600">Cần có mặt trực tiếp tại quầy</span>
                 {% endif %}
               </div>
 
               {% if s.counter %}
-              <span class="text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-md">
+              <span class="text-[11px] font-bold text-slate-700">
                 {{ s.counter.code }} · Bàn {{ s.counter.positionNumber }}
               </span>
               {% endif %}
@@ -132,7 +193,7 @@
             </p>
 
             <!-- Lệ phí & Thời hạn -->
-            <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs">
+            <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs tabular-nums">
               <div>
                 <span class="text-slate-500 text-[11px] block">Lệ phí nhà nước:</span>
                 <span class="font-bold text-emerald-800 text-xs sm:text-sm">{{ s.fee }}</span>
@@ -154,9 +215,12 @@
           </div>
 
           <!-- Nút hành động -->
-          <div class="pt-4 mt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-            <a href="/service/{{ s.id }}" class="flex-1 py-2.5 bg-[#be111a] hover:bg-red-700 text-white font-black text-xs rounded-xl text-center shadow-xs transition-colors">
-              Xem quy trình, hồ sơ & In phiếu →
+          <div class="pt-4 mt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+            <button type="button" data-plan-toggle-id="{{ s.id }}" data-unsaved-label="+ Lưu kế hoạch" data-saved-label="✓ Đã lưu" class="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-xs cursor-pointer transition-colors">
+              <span class="plan-btn-text">+ Lưu kế hoạch</span>
+            </button>
+            <a href="/service/{{ s.id }}" class="flex-1 py-2.5 px-3 bg-[#be111a] hover:bg-red-700 text-white font-black text-xs rounded-xl text-center shadow-xs transition-colors">
+              Xem quy trình, mẫu đơn &amp; In phiếu →
             </a>
           </div>
         </div>
@@ -186,4 +250,86 @@
   </div>
 
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="module">
+  import {
+    getWardOfficeStatus,
+    addMultipleToVisitPlan,
+    openVisitPlanModal
+  } from "{{ url_for('static', filename='js/visit_plan.js') }}";
+
+  const statusObj = getWardOfficeStatus();
+  const statusEl = document.getElementById('offline-office-status');
+  const detailEl = document.getElementById('offline-office-detail');
+  if (statusEl) statusEl.textContent = statusObj.statusLabel;
+  if (detailEl) detailEl.textContent = `— ${statusObj.detailText} ${statusObj.bestVisitTip}`;
+
+  const scenarioBtns = Array.from(document.querySelectorAll('.btn-life-scenario'));
+  const clearScenarioBtn = document.getElementById('btn-clear-scenario');
+  const activeBanner = document.getElementById('scenario-active-banner');
+  const activeTip = document.getElementById('scenario-active-tip');
+  const addPlanBtn = document.getElementById('btn-add-scenario-plan');
+  const cards = Array.from(document.querySelectorAll('.service-catalog-card'));
+
+  let activeScenarioIds = null;
+
+  function applyScenario(btn) {
+    const id = btn.getAttribute('data-scenario-id');
+    const ids = (btn.getAttribute('data-service-ids') || '').split(',').filter(Boolean);
+    const tip = btn.getAttribute('data-tip') || '';
+    const title = btn.querySelector('div')?.textContent || '';
+
+    const isSame = activeScenarioIds && activeScenarioIds.join(',') === ids.join(',');
+    if (isSame) {
+      resetScenario();
+      return;
+    }
+
+    activeScenarioIds = ids;
+    scenarioBtns.forEach((b) => {
+      const active = b.getAttribute('data-scenario-id') === id;
+      b.className = active
+        ? 'btn-life-scenario p-4 rounded-2xl text-left bg-red-800 text-white border border-red-700 cursor-pointer transition-all shadow-sm'
+        : 'btn-life-scenario p-4 rounded-2xl text-left bg-white hover:bg-slate-50 border border-slate-200 cursor-pointer transition-all';
+      const divs = b.querySelectorAll('div');
+      if (divs[0]) divs[0].className = active ? 'text-sm font-black text-white' : 'text-sm font-black text-slate-900';
+      if (divs[1]) divs[1].className = active ? 'text-xs text-red-100 mt-1' : 'text-xs text-slate-600 mt-1';
+    });
+
+    cards.forEach((card) => {
+      const sid = card.getAttribute('data-service-id');
+      card.classList.toggle('hidden', !ids.includes(sid));
+    });
+
+    if (clearScenarioBtn) clearScenarioBtn.classList.remove('hidden');
+    if (activeBanner) activeBanner.classList.remove('hidden');
+    if (activeTip) activeTip.innerHTML = `<strong>Lưu ý trước khi đi (${title}):</strong> ${tip}`;
+  }
+
+  function resetScenario() {
+    activeScenarioIds = null;
+    scenarioBtns.forEach((b) => {
+      b.className = 'btn-life-scenario p-4 rounded-2xl text-left bg-white hover:bg-slate-50 border border-slate-200 cursor-pointer transition-all';
+      const divs = b.querySelectorAll('div');
+      if (divs[0]) divs[0].className = 'text-sm font-black text-slate-900';
+      if (divs[1]) divs[1].className = 'text-xs text-slate-600 mt-1';
+    });
+    cards.forEach((card) => card.classList.remove('hidden'));
+    if (clearScenarioBtn) clearScenarioBtn.classList.add('hidden');
+    if (activeBanner) activeBanner.classList.add('hidden');
+  }
+
+  scenarioBtns.forEach((btn) => btn.addEventListener('click', () => applyScenario(btn)));
+  if (clearScenarioBtn) clearScenarioBtn.addEventListener('click', resetScenario);
+  if (addPlanBtn) {
+    addPlanBtn.addEventListener('click', () => {
+      if (activeScenarioIds && activeScenarioIds.length > 0) {
+        addMultipleToVisitPlan(activeScenarioIds);
+        openVisitPlanModal();
+      }
+    });
+  }
+</script>
 {% endblock %}

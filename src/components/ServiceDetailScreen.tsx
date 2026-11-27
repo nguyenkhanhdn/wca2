@@ -24,10 +24,16 @@ import {
   Eye,
   FilePenLine,
   ClipboardCheck,
-  ShieldAlert
+  ShieldAlert,
+  ClipboardList,
+  Plus,
+  Check,
+  Globe,
+  Scale
 } from 'lucide-react';
 import { useApp, sanitizeServiceNationalPortalUrl } from '../context/AppContext';
 import { SAMPLE_FORMS_BY_SERVICE } from '../data/sampleForms';
+import { getServiceLevelInfo, getWardOfficeStatus } from '../utils/officeHours';
 import { PrintableGuideModal } from './PrintableGuideModal';
 import { SampleFormModal } from './SampleFormModal';
 
@@ -43,7 +49,10 @@ export const ServiceDetailScreen: React.FC = () => {
     isSpeaking,
     accessibility,
     setVoiceSpeed,
-    openAIAssistant
+    openAIAssistant,
+    visitPlanIds,
+    toggleVisitPlanService,
+    setIsVisitPlanModalOpen
   } = useApp();
 
   const [checkedDocs, setCheckedDocs] = useState<Record<string, boolean>>({});
@@ -144,6 +153,9 @@ export const ServiceDetailScreen: React.FC = () => {
   };
 
   const sampleForm = SAMPLE_FORMS_BY_SERVICE[selectedService.id];
+  const levelInfo = getServiceLevelInfo(selectedService.level);
+  const officeStatus = getWardOfficeStatus();
+  const isPlanned = visitPlanIds.includes(selectedService.id);
 
   const openSampleForm = (mode: 'filled' | 'blank' = 'filled') => {
     stopAudio();
@@ -243,6 +255,28 @@ export const ServiceDetailScreen: React.FC = () => {
               >
                 <Eye className="w-4 h-4" />
                 <span>Xem mẫu tờ khai</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => toggleVisitPlanService(selectedService.id)}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm border transition-colors cursor-pointer ${
+                isPlanned
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                  : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200'
+              }`}
+            >
+              {isPlanned ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+              <span>{isPlanned ? 'Đã lưu vào kế hoạch' : 'Lưu kế hoạch đi làm'}</span>
+            </button>
+            {visitPlanIds.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setIsVisitPlanModalOpen(true)}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm transition-colors cursor-pointer tabular-nums"
+              >
+                <ClipboardList className="w-4 h-4 text-amber-300" />
+                <span>Kế hoạch ({visitPlanIds.length})</span>
               </button>
             )}
             <button
@@ -397,6 +431,47 @@ export const ServiceDetailScreen: React.FC = () => {
                 </span>
                 <span className="text-xs text-slate-500 mt-0.5 block">
                   Tính từ thời điểm tiếp nhận đủ hồ sơ hợp lệ
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Pre-Visit Information: Online vs In-Person Mode & Office Hours */}
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                levelInfo.canOnlineFromHome ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'
+              }`}>
+                <Globe className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                  Có làm online tại nhà được không?
+                </span>
+                <span className="text-sm sm:text-base font-bold text-slate-900 mt-0.5 block">
+                  {levelInfo.fullLabel}
+                </span>
+                <span className="text-xs text-slate-600 mt-0.5 block leading-relaxed">
+                  {levelInfo.homeAdvice}
+                </span>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                officeStatus.isOpen ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'
+              }`}>
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                  Giờ tiếp nhận tại UBND {selectedWard.name}
+                </span>
+                <span className="text-sm sm:text-base font-bold text-slate-900 mt-0.5 block">
+                  {officeStatus.statusLabel}
+                </span>
+                <span className="text-xs text-slate-600 mt-0.5 block leading-relaxed">
+                  {selectedWard.workingHours}. {officeStatus.bestVisitTip}
                 </span>
               </div>
             </div>
@@ -718,25 +793,47 @@ export const ServiceDetailScreen: React.FC = () => {
             </div>
 
             {/* FAQ & Legal Basis */}
-            {selectedService.faq && selectedService.faq.length > 0 && (
-              <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-sm">
-                <h2 className="text-base font-bold text-slate-900 tracking-tight mb-3 flex items-center gap-2">
-                  <HelpCircle className="w-4 h-4 text-amber-600" />
-                  Câu hỏi thường gặp của người dân
-                </h2>
+            {((selectedService.faq && selectedService.faq.length > 0) ||
+              (selectedService.legalBasis && selectedService.legalBasis.length > 0)) && (
+              <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-sm space-y-5">
+                {selectedService.faq && selectedService.faq.length > 0 && (
+                  <div>
+                    <h2 className="text-base font-bold text-slate-900 tracking-tight mb-3 flex items-center gap-2">
+                      <HelpCircle className="w-4 h-4 text-amber-600" />
+                      Câu hỏi thường gặp của người dân
+                    </h2>
 
-                <div className="space-y-3">
-                  {selectedService.faq.map((item, idx) => (
-                    <div key={idx} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
-                      <p className="font-bold text-slate-900 mb-1">
-                        Q: {item.question}
-                      </p>
-                      <p className="text-slate-600 leading-relaxed">
-                        A: {item.answer}
-                      </p>
+                    <div className="space-y-3">
+                      {selectedService.faq.map((item, idx) => (
+                        <div key={idx} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+                          <p className="font-bold text-slate-900 mb-1">
+                            Q: {item.question}
+                          </p>
+                          <p className="text-slate-600 leading-relaxed">
+                            A: {item.answer}
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
+
+                {selectedService.legalBasis && selectedService.legalBasis.length > 0 && (
+                  <div className={selectedService.faq && selectedService.faq.length > 0 ? 'pt-4 border-t border-slate-100' : ''}>
+                    <h3 className="text-sm font-bold text-slate-900 mb-2.5 flex items-center gap-2">
+                      <Scale className="w-4 h-4 text-red-700" />
+                      Căn cứ pháp lý quy định thủ tục này
+                    </h3>
+                    <ul className="space-y-1.5 text-xs text-slate-700">
+                      {selectedService.legalBasis.map((law, lIdx) => (
+                        <li key={lIdx} className="flex items-start gap-2">
+                          <span className="text-red-600 font-bold">·</span>
+                          <span>{law}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1036,6 +1133,36 @@ export const ServiceDetailScreen: React.FC = () => {
                   <div className="flex items-center gap-2.5">
                     <FileText className="w-5 h-5 text-amber-950" />
                     <span>Xem mẫu tờ khai minh họa &amp; In mẫu trắng</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => toggleVisitPlanService(selectedService.id)}
+                className={`w-full flex items-center justify-between p-3.5 rounded-2xl border font-bold text-sm transition-colors cursor-pointer ${
+                  isPlanned
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                    : 'bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-900'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  {isPlanned ? <Check className="w-5 h-5 text-emerald-700" /> : <Plus className="w-5 h-5 text-slate-700" />}
+                  <span>{isPlanned ? 'Đã lưu vào Kế hoạch đi làm' : 'Lưu vào Kế hoạch chuẩn bị đi nộp'}</span>
+                </div>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+
+              {visitPlanIds.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setIsVisitPlanModalOpen(true)}
+                  className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-sm transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <ClipboardList className="w-5 h-5 text-red-700" />
+                    <span className="tabular-nums">Xem bảng Kế hoạch chuẩn bị ({visitPlanIds.length} thủ tục)</span>
                   </div>
                   <ChevronRight className="w-4 h-4" />
                 </button>

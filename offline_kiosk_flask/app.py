@@ -43,7 +43,13 @@ def inject_global_data():
         'hotline': '0913 415 457',
         'working_hours': 'Sáng 07h30 - 11h30 | Chiều 13h30 - 17h00'
     }
-    return dict(current_ward=ward)
+    global_services = database.get_services('ward-sontra')
+    global_counters = database.get_counters('ward-sontra')
+    return dict(
+        current_ward=ward,
+        global_services=global_services,
+        global_counters=global_counters
+    )
 
 # --- Trang giao diện Kiosk ---
 

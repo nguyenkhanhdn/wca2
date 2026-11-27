@@ -44,6 +44,15 @@ interface AppContextType {
   aiInitialQuestion: string | null;
   clearAiInitialQuestion: () => void;
 
+  // Pre-Visit Citizen Planner (Lưu danh sách thủ tục dự định đi làm)
+  visitPlanIds: string[];
+  isVisitPlanModalOpen: boolean;
+  setIsVisitPlanModalOpen: (open: boolean) => void;
+  toggleVisitPlanService: (serviceId: string) => void;
+  addMultipleToVisitPlan: (serviceIds: string[]) => void;
+  removeFromVisitPlan: (serviceId: string) => void;
+  clearVisitPlan: () => void;
+
   // Admin Authentication
   isAdminLoggedIn: boolean;
   isAdminLoginModalOpen: boolean;
@@ -96,7 +105,8 @@ const STORAGE_KEYS = {
   OFFICERS: 'dvc_sontra_officers_v3',
   SERVICES: 'dvc_sontra_services_v3',
   SELECTED_WARD: 'dvc_sontra_sel_ward_v3',
-  ACCESSIBILITY: 'dvc_sontra_a11y_v3'
+  ACCESSIBILITY: 'dvc_sontra_a11y_v3',
+  VISIT_PLAN: 'dvc_sontra_visit_plan_v1'
 };
 
 const INITIAL_PORTAL_URLS_BY_ID: Record<string, string> = INITIAL_SERVICES.reduce((acc, srv) => {
@@ -250,10 +260,42 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isAdminLoginModalOpen, setIsAdminLoginModalOpen] = useState<boolean>(false);
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState<boolean>(false);
   const [aiInitialQuestion, setAiInitialQuestion] = useState<string | null>(null);
+  const [isVisitPlanModalOpen, setIsVisitPlanModalOpen] = useState<boolean>(false);
+  const [visitPlanIds, setVisitPlanIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.VISIT_PLAN);
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
   const [selectedService, setSelectedService] = useState<PublicService | null>(null);
   const [selectedCounter, setSelectedCounter] = useState<Counter | null>(null);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [activePlayingText, setActivePlayingText] = useState<string | null>(null);
+
+  const toggleVisitPlanService = useCallback((serviceId: string) => {
+    setVisitPlanIds((prev) =>
+      prev.includes(serviceId) ? prev.filter((id) => id !== serviceId) : [...prev, serviceId]
+    );
+  }, []);
+
+  const addMultipleToVisitPlan = useCallback((serviceIds: string[]) => {
+    setVisitPlanIds((prev) => {
+      const next = new Set(prev);
+      serviceIds.forEach((id) => next.add(id));
+      return Array.from(next);
+    });
+  }, []);
+
+  const removeFromVisitPlan = useCallback((serviceId: string) => {
+    setVisitPlanIds((prev) => prev.filter((id) => id !== serviceId));
+  }, []);
+
+  const clearVisitPlan = useCallback(() => {
+    setVisitPlanIds([]);
+  }, []);
 
   const openAIAssistant = useCallback((initialQuestion?: string | unknown) => {
     if (typeof initialQuestion === 'string' && initialQuestion.trim()) {
@@ -301,10 +343,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       localStorage.setItem(STORAGE_KEYS.SERVICES, JSON.stringify(services));
       localStorage.setItem(STORAGE_KEYS.SELECTED_WARD, selectedWardId);
       localStorage.setItem(STORAGE_KEYS.ACCESSIBILITY, JSON.stringify(accessibility));
+      localStorage.setItem(STORAGE_KEYS.VISIT_PLAN, JSON.stringify(visitPlanIds));
     } catch (e) {
       console.error('Failed to sync to localStorage:', e);
     }
-  }, [wards, counters, officers, services, selectedWardId, accessibility]);
+  }, [wards, counters, officers, services, selectedWardId, accessibility, visitPlanIds]);
 
   // Apply HTML class for high-contrast and text scale
   useEffect(() => {
@@ -559,6 +602,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         openAIAssistant,
         aiInitialQuestion,
         clearAiInitialQuestion,
+        visitPlanIds,
+        isVisitPlanModalOpen,
+        setIsVisitPlanModalOpen,
+        toggleVisitPlanService,
+        addMultipleToVisitPlan,
+        removeFromVisitPlan,
+        clearVisitPlan,
         isAdminLoggedIn,
         isAdminLoginModalOpen,
         setIsAdminLoginModalOpen,

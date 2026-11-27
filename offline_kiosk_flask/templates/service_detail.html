@@ -72,6 +72,14 @@
       </button>
       {% endif %}
 
+      <button type="button" data-plan-toggle-id="{{ service.id }}" data-unsaved-label="+ Lưu kế hoạch đi làm" data-saved-label="✓ Đã lưu vào kế hoạch" class="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 font-bold text-xs cursor-pointer transition-colors">
+        <span class="plan-btn-text">+ Lưu kế hoạch đi làm</span>
+      </button>
+
+      <button type="button" data-open-visit-plan class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs cursor-pointer transition-colors tabular-nums">
+        Kế hoạch (<span data-visit-plan-count>0</span>)
+      </button>
+
       <!-- Nút hỏi trợ lý về thủ tục & mẫu đơn này -->
       <button type="button" data-ai-question="Thủ tục {{ service.name }} cần giấy tờ, mẫu đơn gì và làm thế nào?" class="px-4 py-2 bg-[#be111a] hover:bg-red-700 text-white font-black text-xs rounded-xl shadow-xs flex items-center gap-2 cursor-pointer transition-all">
         <span>Hỏi Trợ lý về thủ tục &amp; mẫu đơn</span>
@@ -136,6 +144,20 @@
         <span class="text-xs font-black text-amber-900 uppercase tracking-wide">THỜI HẠN GIẢI QUYẾT HỒ SƠ</span>
         <div class="text-lg sm:text-xl font-black text-amber-950">{{ service.processingDuration }}</div>
         <p class="text-xs text-amber-800">Tính theo ngày làm việc hành chính từ khi nhận đủ hồ sơ hợp lệ</p>
+      </div>
+    </div>
+
+    <!-- Thông tin tìm hiểu trước ở nhà: Có nộp online được không & Giờ tiếp nhận -->
+    <div class="no-print grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wide block">Có làm online tại nhà được không?</span>
+        <div id="detail-level-title" class="text-sm font-black text-slate-900">Đang kiểm tra...</div>
+        <p id="detail-level-advice" class="text-xs text-slate-600 leading-relaxed"></p>
+      </div>
+      <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wide block">Giờ tiếp nhận tại {{ current_ward.name }}</span>
+        <div id="detail-office-title" class="text-sm font-black text-slate-900">Đang kiểm tra...</div>
+        <p id="detail-office-advice" class="text-xs text-slate-600 leading-relaxed"></p>
       </div>
     </div>
 
@@ -305,6 +327,18 @@
         {% endfor %}
       </div>
     </div>
+
+    <!-- Căn cứ pháp lý quy định thủ tục -->
+    {% if service.legalBasis %}
+    <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+      <h3 class="text-sm font-black text-slate-900 uppercase">3. Căn cứ pháp lý quy định thủ tục này</h3>
+      <ul class="space-y-1 text-xs text-slate-700">
+        {% for law in service.legalBasis %}
+        <li>· {{ law }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
 
     <!-- Thông tin cán bộ & Hỗ trợ công dân -->
     {% if counter %}
@@ -570,11 +604,24 @@
 {% block extra_scripts %}
 <script type="module">
   import { speakText, stopSpeaking } from "{{ url_for('static', filename='js/speech.js') }}";
+  import { getServiceLevelInfo, getWardOfficeStatus } from "{{ url_for('static', filename='js/visit_plan.js') }}";
 
   const SERVICE_ID = {{ service.id | tojson }};
   const SERVICE_NAME = {{ service.name | tojson }};
+  const SERVICE_LEVEL = {{ (service.level or '') | tojson }};
   const COUNTER_DESC = {% if counter %}{{ (counter.code ~ ', bàn số ' ~ counter.positionNumber ~ ', gặp ' ~ (counter.officerName or 'Cán bộ tiếp nhận')) | tojson }}{% else %}"Bộ phận Một cửa"{% endif %};
   const HAS_SAMPLE_FORM = {{ 'true' if sample_form else 'false' }};
+
+  const levelInfo = getServiceLevelInfo(SERVICE_LEVEL);
+  const officeInfo = getWardOfficeStatus();
+  const lvlTitleEl = document.getElementById('detail-level-title');
+  const lvlAdvEl = document.getElementById('detail-level-advice');
+  const offTitleEl = document.getElementById('detail-office-title');
+  const offAdvEl = document.getElementById('detail-office-advice');
+  if (lvlTitleEl) lvlTitleEl.textContent = levelInfo.fullLabel;
+  if (lvlAdvEl) lvlAdvEl.textContent = levelInfo.homeAdvice;
+  if (offTitleEl) offTitleEl.textContent = officeInfo.statusLabel;
+  if (offAdvEl) offAdvEl.textContent = `${officeInfo.detailText} ${officeInfo.bestVisitTip}`;
 
   // =========================================================================
   // 1. ĐỌC HƯỚNG DẪN THỦ TỤC BẰNG GIỌNG NÓI
